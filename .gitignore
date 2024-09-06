@@ -1,0 +1,12 @@
+# Project-specific ignores
+backend/__pycache__/
+frontend/node_modules/
+frontend/build/
+*.pdf
+*.pyc
+.env
+
+combiner.py
+current_codebase_state/
+venv/
+setup_project.py
