@@ -65,14 +65,13 @@ function App() {
   };
 
   const handleQuery = async () => {
-    if (!pdfId) {
-      alert('Please upload a PDF first!');
+    if (!query) {
+      alert('Please enter a query!');
       return;
     }
 
     try {
       const response = await axios.post('http://localhost:8000/query', {
-        pdf_id: pdfId,
         query: query,
       });
       setResponses(response.data.responses);
