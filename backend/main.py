@@ -118,6 +118,27 @@ async def query_pdf(pdf_id: str, query: str):
     
     return {"responses": responses}
 
+@app.get("/list-pdfs")
+async def list_pdfs():
+    pdf_list = []
+    for pdf_id, pdf_data in extracted_pages.items():
+        pdf_list.append({
+            "pdf_id": pdf_id,
+            "publication_name": pdf_data["publication_name"],
+            "edition": pdf_data["edition"],
+            "date": pdf_data["date"],
+            "page_count": len(pdf_data["pages"])
+        })
+    return {"pdfs": pdf_list}
+
+@app.delete("/delete-pdf/{pdf_id}")
+async def delete_pdf(pdf_id: str):
+    if pdf_id not in extracted_pages:
+        raise HTTPException(status_code=404, detail="PDF not found")
+    
+    del extracted_pages[pdf_id]
+    return {"message": f"PDF with id {pdf_id} has been deleted"}
+
 async def process_page(model, page, pdf_data, query):
     try:
         with open(page["path"], "rb") as image_file:

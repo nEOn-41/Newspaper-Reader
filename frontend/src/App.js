@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function App() {
@@ -9,6 +9,20 @@ function App() {
   const [pdfId, setPdfId] = useState(null);
   const [query, setQuery] = useState('');
   const [responses, setResponses] = useState([]);
+  const [pdfs, setPdfs] = useState([]);
+
+  useEffect(() => {
+    fetchPDFs();
+  }, []);
+
+  const fetchPDFs = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/list-pdfs');
+      setPdfs(response.data.pdfs);
+    } catch (error) {
+      console.error('Error fetching PDFs:', error);
+    }
+  };
 
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
@@ -34,6 +48,12 @@ function App() {
       });
       setPdfId(response.data.pdf_id);
       alert('PDF uploaded successfully!');
+      fetchPDFs();  // Add this line to refresh the PDF list
+      // Clear the form fields after successful upload
+      setFile(null);
+      setPublicationName('');
+      setEdition('');
+      setDate('');
     } catch (error) {
       console.error('Error uploading file:', error);
       if (error.response) {
@@ -59,6 +79,17 @@ function App() {
     } catch (error) {
       console.error('Error querying PDF:', error);
       alert('Error querying PDF. Please try again.');
+    }
+  };
+
+  const handleDelete = async (pdfId) => {
+    try {
+      await axios.delete(`http://localhost:8000/delete-pdf/${pdfId}`);
+      alert('PDF deleted successfully!');
+      fetchPDFs();
+    } catch (error) {
+      console.error('Error deleting PDF:', error);
+      alert('Error deleting PDF. Please try again.');
     }
   };
 
@@ -95,6 +126,15 @@ function App() {
         />
         <button onClick={handleQuery}>Submit Query</button>
       </div>
+      <h2>Uploaded PDFs</h2>
+      <ul>
+        {pdfs.map((pdf) => (
+          <li key={pdf.pdf_id}>
+            {pdf.publication_name} - {pdf.edition} ({pdf.date}) - {pdf.page_count} pages
+            <button onClick={() => handleDelete(pdf.pdf_id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
       {responses.length > 0 && (
         <div>
           <h2>Responses:</h2>
