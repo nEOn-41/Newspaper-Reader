@@ -1,13 +1,14 @@
 import os
+import uuid  # Add this import
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
 import asyncio
 from dotenv import load_dotenv
 import tempfile
-from pdf2image import convert_from_path
-import uuid
-import time
+import fitz  # PyMuPDF
+import io
+from PIL import Image
 
 # Load environment variables from .env file
 load_dotenv()
@@ -45,17 +46,8 @@ async def upload_pdf(
         raise HTTPException(status_code=400, detail="Only PDF files are allowed")
     
     try:
-        # Create a temporary file to store the uploaded PDF
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
-            content = await file.read()
-            temp_file.write(content)
-            temp_file_path = temp_file.name
-
-        # Specify the path to poppler explicitly
-        poppler_path = r"C:\Poppler-24.07.0-0\poppler-24.07.0\Library\bin"
-        
-        # Extract pages and convert to images
-        images = convert_from_path(temp_file_path, poppler_path=poppler_path)
+        # Read the uploaded file content
+        pdf_content = await file.read()
         
         # Generate a unique identifier for this PDF
         pdf_id = str(uuid.uuid4())
@@ -70,18 +62,29 @@ async def upload_pdf(
                 "pages": []
             }
             
-            for i, image in enumerate(images):
-                page_id = f"{pdf_id}_{i+1}"
-                image_path = os.path.join(temp_dir, f"{page_id}.jpg")
-                image.save(image_path, "JPEG")
+            # Open the PDF using PyMuPDF
+            doc = fitz.open(stream=pdf_content, filetype="pdf")
+            
+            for page_num in range(len(doc)):
+                page = doc[page_num]
+                pix = page.get_pixmap()
+                
+                # Convert PyMuPDF pixmap to PIL Image
+                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                
+                page_id = f"{pdf_id}_{page_num+1}"
+                image_path = os.path.join(temp_dir, f"{page_id}.png")
+                
+                # Save the image as PNG
+                img.save(image_path, "PNG")
+                
                 extracted_pages[pdf_id]["pages"].append({
                     "id": page_id,
                     "path": image_path,
-                    "number": i+1
+                    "number": page_num + 1
                 })
-        
-        # Clean up the temporary PDF file
-        os.unlink(temp_file_path)
+            
+            doc.close()
         
         return {"message": "PDF uploaded and pages extracted successfully", "pdf_id": pdf_id}
     except Exception as e:
