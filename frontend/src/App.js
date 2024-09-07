@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Select from 'react-select';
 
 function App() {
   const [file, setFile] = useState(null);
@@ -10,6 +11,15 @@ function App() {
   const [query, setQuery] = useState('');
   const [responses, setResponses] = useState([]);
   const [pdfs, setPdfs] = useState([]);
+
+  const [publications] = useState([
+    { value: 'The Times of India', label: 'The Times of India' }
+  ]);
+  const [editions] = useState([
+    'Hyderabad', 'Pune', 'Ahmedabad', 'Bengaluru', 'Mumbai',
+    'Kochi', 'Lucknow', 'Delhi', 'Goa', 'Chandigarh',
+    'Chennai', 'Jaipur', 'Kolkata', 'Bhopal'
+  ].map(city => ({ value: city, label: city })));
 
   useEffect(() => {
     fetchPDFs();
@@ -92,22 +102,32 @@ function App() {
     }
   };
 
+  const handlePublicationChange = (selectedOption) => {
+    setPublicationName(selectedOption ? selectedOption.value : '');
+  };
+
+  const handleEditionChange = (selectedOption) => {
+    setEdition(selectedOption ? selectedOption.value : '');
+  };
+
   return (
     <div className="App">
       <h1>Newspaper Query System</h1>
       <div>
         <input type="file" accept=".pdf" onChange={handleFileChange} />
-        <input
-          type="text"
-          value={publicationName}
-          onChange={(e) => setPublicationName(e.target.value)}
-          placeholder="Publication Name"
+        <Select
+          value={publications.find(pub => pub.value === publicationName)}
+          onChange={handlePublicationChange}
+          options={publications}
+          placeholder="Select Publication"
+          isClearable
         />
-        <input
-          type="text"
-          value={edition}
-          onChange={(e) => setEdition(e.target.value)}
-          placeholder="Edition"
+        <Select
+          value={editions.find(ed => ed.value === edition)}
+          onChange={handleEditionChange}
+          options={editions}
+          placeholder="Select Edition"
+          isClearable
         />
         <input
           type="date"
