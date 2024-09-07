@@ -12,6 +12,7 @@ from PIL import Image
 from pydantic import BaseModel
 import logging
 import shutil
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,6 +27,24 @@ genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 # Create upload directory
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploaded_pdfs")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Define a path for storing metadata
+METADATA_FILE = os.path.join(UPLOAD_DIR, "metadata.json")
+
+# Load existing metadata on startup
+def load_metadata():
+    if os.path.exists(METADATA_FILE):
+        with open(METADATA_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+# Save metadata to file
+def save_metadata():
+    with open(METADATA_FILE, 'w') as f:
+        json.dump(extracted_pages, f)
+
+# Load existing metadata on startup
+extracted_pages = load_metadata()
 
 app = FastAPI()
 
@@ -102,6 +121,9 @@ async def upload_pdf(
         
         doc.close()
         
+        # Save metadata after successful upload
+        save_metadata()
+        
         return {"message": "PDF uploaded and pages extracted successfully", "pdf_id": pdf_id}
     except Exception as e:
         logger.error(f"Error in upload_pdf: {str(e)}")
@@ -145,13 +167,22 @@ async def query_pdf(request: QueryRequest):
 async def list_pdfs():
     pdf_list = []
     for pdf_id, pdf_data in extracted_pages.items():
-        pdf_list.append({
-            "pdf_id": pdf_id,
-            "publication_name": pdf_data["publication_name"],
-            "edition": pdf_data["edition"],
-            "date": pdf_data["date"],
-            "page_count": len(pdf_data["pages"])
-        })
+        pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
+        if os.path.exists(pdf_dir):
+            pdf_list.append({
+                "pdf_id": pdf_id,
+                "publication_name": pdf_data["publication_name"],
+                "edition": pdf_data["edition"],
+                "date": pdf_data["date"],
+                "page_count": len(pdf_data["pages"])
+            })
+        else:
+            # If the directory doesn't exist, remove it from metadata
+            del extracted_pages[pdf_id]
+    
+    # Save updated metadata
+    save_metadata()
+    
     return {"pdfs": pdf_list}
 
 @app.delete("/delete-pdf/{pdf_id}")
@@ -165,6 +196,10 @@ async def delete_pdf(pdf_id: str):
         shutil.rmtree(pdf_dir)
     
     del extracted_pages[pdf_id]
+    
+    # Save updated metadata
+    save_metadata()
+    
     return {"message": f"PDF with id {pdf_id} has been deleted"}
 
 async def process_page(model, page, pdf_data, query):
