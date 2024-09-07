@@ -34,8 +34,11 @@ METADATA_FILE = os.path.join(UPLOAD_DIR, "metadata.json")
 # Load existing metadata on startup
 def load_metadata():
     if os.path.exists(METADATA_FILE):
-        with open(METADATA_FILE, 'r') as f:
-            return json.load(f)
+        try:
+            with open(METADATA_FILE, 'r') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            logger.error("Error decoding metadata file. Starting with empty metadata.")
     return {}
 
 # Save metadata to file
@@ -48,6 +51,12 @@ extracted_pages = load_metadata()
 
 app = FastAPI()
 
+@app.on_event("startup")
+async def startup_event():
+    global extracted_pages
+    extracted_pages = load_metadata()
+    logger.info(f"Loaded metadata: {len(extracted_pages)} PDFs")
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -56,9 +65,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Store extracted pages and metadata
-extracted_pages = {}
 
 class QueryRequest(BaseModel):
     query: str
@@ -165,7 +171,9 @@ async def query_pdf(request: QueryRequest):
 
 @app.get("/list-pdfs")
 async def list_pdfs():
+    global extracted_pages
     pdf_list = []
+    updated_extracted_pages = {}
     for pdf_id, pdf_data in extracted_pages.items():
         pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
         if os.path.exists(pdf_dir):
@@ -176,13 +184,15 @@ async def list_pdfs():
                 "date": pdf_data["date"],
                 "page_count": len(pdf_data["pages"])
             })
+            updated_extracted_pages[pdf_id] = pdf_data
         else:
-            # If the directory doesn't exist, remove it from metadata
-            del extracted_pages[pdf_id]
-    
-    # Save updated metadata
-    save_metadata()
-    
+            logger.warning(f"PDF directory not found for {pdf_id}. Removing from metadata.")
+
+    if len(updated_extracted_pages) != len(extracted_pages):
+        extracted_pages = updated_extracted_pages
+        save_metadata()
+        logger.info(f"Updated metadata: {len(extracted_pages)} PDFs")
+
     return {"pdfs": pdf_list}
 
 @app.delete("/delete-pdf/{pdf_id}")
