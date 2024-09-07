@@ -95,16 +95,16 @@ async def upload_pdf(
         pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
         os.makedirs(pdf_dir, exist_ok=True)
         
+        # Open the PDF using PyMuPDF
+        doc = fitz.open(stream=pdf_content, filetype="pdf")
+        
         # Store extracted pages and metadata
         extracted_pages[pdf_id] = {
             "publication_name": publication_name,
             "edition": edition,
             "date": date,
-            "pages": []
+            "total_pages": len(doc)
         }
-        
-        # Open the PDF using PyMuPDF
-        doc = fitz.open(stream=pdf_content, filetype="pdf")
         
         for page_num in range(len(doc)):
             page = doc[page_num]
@@ -113,17 +113,10 @@ async def upload_pdf(
             # Convert PyMuPDF pixmap to PIL Image
             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
             
-            page_id = f"{pdf_id}_{page_num+1}"
-            image_path = os.path.join(pdf_dir, f"page_{page_num+1}.png")
+            image_path = os.path.join(pdf_dir, f"{page_num + 1}.png")
             
             # Save the image as PNG
             img.save(image_path, "PNG")
-            
-            extracted_pages[pdf_id]["pages"].append({
-                "id": page_id,
-                "path": image_path,
-                "number": page_num + 1
-            })
         
         doc.close()
         
@@ -146,10 +139,10 @@ async def query_pdf(request: QueryRequest):
     model = genai.GenerativeModel("gemini-1.5-flash")
     
     for pdf_id, pdf_data in extracted_pages.items():
-        pages = pdf_data["pages"]
-        logger.info(f"Processing PDF {pdf_id} with {len(pages)} pages")
-        for i in range(0, len(pages), 15):
-            batch = pages[i:i+15]
+        total_pages = pdf_data["total_pages"]
+        logger.info(f"Processing PDF {pdf_id} with {total_pages} pages")
+        for i in range(0, total_pages, 15):
+            batch = [{"id": f"{pdf_id}_{page_num+1}", "number": page_num+1} for page_num in range(i, min(i+15, total_pages))]
             tasks = []
             for page in batch:
                 task = asyncio.create_task(process_page(model, page, pdf_data, query))
@@ -162,7 +155,7 @@ async def query_pdf(request: QueryRequest):
             except Exception as e:
                 logger.error(f"Error processing batch: {str(e)}")
             
-            if i + 15 < len(pages):
+            if i + 15 < total_pages:
                 logger.info("Rate limit reached. Waiting for 60 seconds...")
                 await asyncio.sleep(60)
     
@@ -182,7 +175,7 @@ async def list_pdfs():
                 "publication_name": pdf_data["publication_name"],
                 "edition": pdf_data["edition"],
                 "date": pdf_data["date"],
-                "page_count": len(pdf_data["pages"])
+                "page_count": pdf_data["total_pages"]
             })
             updated_extracted_pages[pdf_id] = pdf_data
         else:
@@ -217,7 +210,7 @@ async def process_page(model, page, pdf_data, query):
         logger.info(f"Processing page {page['id']}")
         
         # Open the image using PIL
-        with Image.open(page["path"]) as img:
+        with Image.open(os.path.join(os.path.join(UPLOAD_DIR, page['id'].split('_')[0]), f"{page['number']}.png")) as img:
             # Convert the image to RGB mode if it's not already
             img = img.convert('RGB')
             
@@ -276,13 +269,13 @@ async def process_page(model, page, pdf_data, query):
         
         logger.info(f"Successfully processed page {page['id']}")
         return {
-            "page_id": page["id"],
+            "page_id": f"{page['id'].split('_')[0]}_{page['number']}",
             "response": response.text
         }
     except Exception as e:
         logger.error(f"Error processing page {page['id']}: {str(e)}")
         return {
-            "page_id": page["id"],
+            "page_id": f"{page['id'].split('_')[0]}_{page['number']}",
             "error": str(e)
         }
 
