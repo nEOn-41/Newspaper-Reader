@@ -216,12 +216,45 @@ async def process_page(model, page, pdf_data, query):
             img.save(img_byte_arr, format='PNG')
             img_byte_arr = img_byte_arr.getvalue()
 
+        SYSTEM_PROMPT = """
+        You are an AI assistant specialized in analyzing newspaper pages. Your task is to examine the given newspaper page image and respond to queries about its content. Follow these guidelines:
+
+        1. Analyze the provided newspaper page image carefully.
+        2. Focus on finding information related to the given KEYWORDS in the query.
+        3. Provide concise and relevant responses.
+        4. Format your response as a JSON object with the following structure:
+
+        {
+          "retrieval": boolean,
+          "keywords": [
+            {
+              "keyword": string,
+              "articles": [
+                {
+                  "headline": string,
+                  "summary": string
+                }
+              ]
+            }
+          ]
+        }
+
+        - Set "retrieval" to true if any relevant information is found for at least one keyword, false otherwise.
+        - Only include the "keywords" array if "retrieval" is true.
+        - In the "keywords" array, only include keywords for which articles were found.
+        - For each keyword with found articles, list all related articles on the page.
+        - Provide a brief, informative summary for each article.
+
+        Remember to consider the provided metadata (Publication, Edition, Date, Page) when analyzing the content.
+        """
+
         response = await model.generate_content_async([
             {
                 "mime_type": "image/png",
                 "data": img_byte_arr
             },
             f"""
+            {SYSTEM_PROMPT}
             Publication: {pdf_data['publication_name']}
             Edition: {pdf_data['edition']}
             Date: {pdf_data['date']}
