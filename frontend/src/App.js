@@ -84,7 +84,19 @@ function App() {
       const response = await axios.post('http://localhost:8000/query', {
         query: query,
       });
-      setResponses(response.data.responses);
+      
+      // Filter responses to only include those with retrieval: true
+      const filteredResponses = response.data.responses.filter(resp => {
+        try {
+          const parsedResponse = JSON.parse(resp.response);
+          return parsedResponse.retrieval === true;
+        } catch (error) {
+          console.error('Error parsing response:', error);
+          return false;
+        }
+      });
+
+      setResponses(filteredResponses);
     } catch (error) {
       console.error('Error querying PDF:', error);
       alert('Error querying PDF. Please try again.');
@@ -157,12 +169,30 @@ function App() {
       {responses.length > 0 && (
         <div>
           <h2>Responses:</h2>
-          {responses.map((response, index) => (
-            <div key={index}>
-              <h3>Page ID: {response.page_id}</h3>
-              <p>{response.response || response.error}</p>
-            </div>
-          ))}
+          {responses.map((response, index) => {
+            try {
+              const parsedResponse = JSON.parse(response.response);
+              return (
+                <div key={index}>
+                  <h3>Page ID: {response.page_id}</h3>
+                  {parsedResponse.keywords.map((keyword, keywordIndex) => (
+                    <div key={keywordIndex}>
+                      <h4>Keyword: {keyword.keyword}</h4>
+                      {keyword.articles.map((article, articleIndex) => (
+                        <div key={articleIndex}>
+                          <h5>{article.headline}</h5>
+                          <p>{article.summary}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              );
+            } catch (error) {
+              console.error('Error parsing response:', error);
+              return null;
+            }
+          })}
         </div>
       )}
     </div>

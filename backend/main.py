@@ -138,72 +138,47 @@ async def query_pdf(request: QueryRequest):
     
     model = genai.GenerativeModel("gemini-1.5-flash")
     
+    batch_size = 15
+    current_batch = []
+    
     for pdf_id, pdf_data in extracted_pages.items():
         total_pages = pdf_data["total_pages"]
         logger.info(f"Processing PDF {pdf_id} with {total_pages} pages")
-        for i in range(0, total_pages, 15):
-            batch = [{"id": f"{pdf_id}_{page_num+1}", "number": page_num+1} for page_num in range(i, min(i+15, total_pages))]
-            tasks = []
-            for page in batch:
-                task = asyncio.create_task(process_page(model, page, pdf_data, query))
-                tasks.append(task)
+        
+        for page_num in range(total_pages):
+            current_batch.append({
+                "id": f"{pdf_id}_{page_num+1}",
+                "number": page_num+1,
+                "pdf_data": pdf_data
+            })
             
-            try:
-                batch_responses = await asyncio.gather(*tasks)
-                responses.extend(batch_responses)
-                logger.info(f"Processed batch of {len(batch)} pages")
-            except Exception as e:
-                logger.error(f"Error processing batch: {str(e)}")
-            
-            if i + 15 < total_pages:
+            if len(current_batch) == batch_size:
+                responses.extend(await process_batch(model, current_batch, query))
+                current_batch = []
+                
                 logger.info("Rate limit reached. Waiting for 60 seconds...")
                 await asyncio.sleep(60)
+    
+    # Process any remaining pages in the last batch
+    if current_batch:
+        responses.extend(await process_batch(model, current_batch, query))
     
     logger.info(f"Query processing complete. Total responses: {len(responses)}")
     return {"responses": responses}
 
-@app.get("/list-pdfs")
-async def list_pdfs():
-    global extracted_pages
-    pdf_list = []
-    updated_extracted_pages = {}
-    for pdf_id, pdf_data in extracted_pages.items():
-        pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
-        if os.path.exists(pdf_dir):
-            pdf_list.append({
-                "pdf_id": pdf_id,
-                "publication_name": pdf_data["publication_name"],
-                "edition": pdf_data["edition"],
-                "date": pdf_data["date"],
-                "page_count": pdf_data["total_pages"]
-            })
-            updated_extracted_pages[pdf_id] = pdf_data
-        else:
-            logger.warning(f"PDF directory not found for {pdf_id}. Removing from metadata.")
-
-    if len(updated_extracted_pages) != len(extracted_pages):
-        extracted_pages = updated_extracted_pages
-        save_metadata()
-        logger.info(f"Updated metadata: {len(extracted_pages)} PDFs")
-
-    return {"pdfs": pdf_list}
-
-@app.delete("/delete-pdf/{pdf_id}")
-async def delete_pdf(pdf_id: str):
-    if pdf_id not in extracted_pages:
-        raise HTTPException(status_code=404, detail="PDF not found")
+async def process_batch(model, batch, query):
+    tasks = []
+    for page in batch:
+        task = asyncio.create_task(process_page(model, page, page["pdf_data"], query))
+        tasks.append(task)
     
-    # Remove the PDF directory
-    pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
-    if os.path.exists(pdf_dir):
-        shutil.rmtree(pdf_dir)
-    
-    del extracted_pages[pdf_id]
-    
-    # Save updated metadata
-    save_metadata()
-    
-    return {"message": f"PDF with id {pdf_id} has been deleted"}
+    try:
+        batch_responses = await asyncio.gather(*tasks)
+        logger.info(f"Processed batch of {len(batch)} pages")
+        return batch_responses
+    except Exception as e:
+        logger.error(f"Error processing batch: {str(e)}")
+        return []
 
 async def process_page(model, page, pdf_data, query):
     try:
@@ -278,6 +253,49 @@ async def process_page(model, page, pdf_data, query):
             "page_id": f"{page['id'].split('_')[0]}_{page['number']}",
             "error": str(e)
         }
+
+@app.get("/list-pdfs")
+async def list_pdfs():
+    global extracted_pages
+    pdf_list = []
+    updated_extracted_pages = {}
+    for pdf_id, pdf_data in extracted_pages.items():
+        pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
+        if os.path.exists(pdf_dir):
+            pdf_list.append({
+                "pdf_id": pdf_id,
+                "publication_name": pdf_data["publication_name"],
+                "edition": pdf_data["edition"],
+                "date": pdf_data["date"],
+                "page_count": pdf_data["total_pages"]
+            })
+            updated_extracted_pages[pdf_id] = pdf_data
+        else:
+            logger.warning(f"PDF directory not found for {pdf_id}. Removing from metadata.")
+
+    if len(updated_extracted_pages) != len(extracted_pages):
+        extracted_pages = updated_extracted_pages
+        save_metadata()
+        logger.info(f"Updated metadata: {len(extracted_pages)} PDFs")
+
+    return {"pdfs": pdf_list}
+
+@app.delete("/delete-pdf/{pdf_id}")
+async def delete_pdf(pdf_id: str):
+    if pdf_id not in extracted_pages:
+        raise HTTPException(status_code=404, detail="PDF not found")
+    
+    # Remove the PDF directory
+    pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
+    if os.path.exists(pdf_dir):
+        shutil.rmtree(pdf_dir)
+    
+    del extracted_pages[pdf_id]
+    
+    # Save updated metadata
+    save_metadata()
+    
+    return {"message": f"PDF with id {pdf_id} has been deleted"}
 
 if __name__ == "__main__":
     import uvicorn
