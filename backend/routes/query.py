@@ -52,4 +52,4 @@ async def query_pdf(request: QueryRequest):
         responses.extend(await process_batch(current_batch, query))
     
     logger.info(f"Query processing complete. Total responses: {len(responses)}")
-    return {"responses": responses}
+    return {"responses": [{"page_id": r["page_id"], "response": r["response"]} for r in responses]}
