@@ -1,12 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import asyncio
-from PIL import Image
-import io
 from models.gemini import process_page
 from utils.utils import load_metadata
 from utils.batch_processing import process_batch
 from config import UPLOAD_DIR
+from routes.clients import load_clients
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,16 +13,25 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 class QueryRequest(BaseModel):
-    query: str
+    client: str
 
 @router.post("/query")
 async def query_pdf(request: QueryRequest):
-    query = request.query
+    client = request.client
     responses = []
     
-    logger.info(f"Received query: {query}")
+    logger.info(f"Received query for client: {client}")
     
-    extracted_pages = load_metadata()
+    metadata = load_metadata()
+    extracted_pages = metadata.get("pdfs", {})
+    clients = load_clients()
+    
+    if client not in clients:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    keywords = clients[client]
+    full_query = f"Can you find any article on the page with the following keywords: {', '.join(keywords)}?"
+    
     logger.info(f"Number of PDFs to process: {len(extracted_pages)}")
     
     batch_size = 15
@@ -41,7 +49,7 @@ async def query_pdf(request: QueryRequest):
             })
             
             if len(current_batch) == batch_size:
-                responses.extend(await process_batch(current_batch, query))
+                responses.extend(await process_batch(current_batch, full_query))
                 current_batch = []
                 
                 logger.info("Rate limit reached. Waiting for 60 seconds...")
@@ -49,7 +57,7 @@ async def query_pdf(request: QueryRequest):
     
     # Process any remaining pages in the last batch
     if current_batch:
-        responses.extend(await process_batch(current_batch, query))
+        responses.extend(await process_batch(current_batch, full_query))
     
     logger.info(f"Query processing complete. Total responses: {len(responses)}")
     return {"responses": [{"page_id": r["page_id"], "response": r["response"]} for r in responses]}

@@ -21,6 +21,9 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 # Metadata file path
 METADATA_FILE = DATA_DIR / "metadata.json"
 
+# Client database file path
+CLIENT_DB_FILE = DATA_DIR / "client_database.json"
+
 # Gemini API Key
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 

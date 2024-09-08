@@ -8,9 +8,13 @@ function App() {
   const [edition, setEdition] = useState('');
   const [date, setDate] = useState('');
   const [pdfId, setPdfId] = useState(null);
-  const [query, setQuery] = useState('');
   const [responses, setResponses] = useState([]);
   const [pdfs, setPdfs] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientKeywords, setNewClientKeywords] = useState('');
+  const [isQuerying, setIsQuerying] = useState(false);
 
   const [publications] = useState([
     { value: 'The Times of India', label: 'The Times of India' }
@@ -23,6 +27,7 @@ function App() {
 
   useEffect(() => {
     fetchPDFs();
+    fetchClients();
   }, []);
 
   const fetchPDFs = async () => {
@@ -31,6 +36,15 @@ function App() {
       setPdfs(response.data.pdfs);
     } catch (error) {
       console.error('Error fetching PDFs:', error);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/clients');
+      setClients(response.data.clients);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
     }
   };
 
@@ -75,21 +89,52 @@ function App() {
     fetchPDFs();  // Refresh the list of PDFs  
   };
 
-  const handleQuery = async () => {
-    if (!query) {
-      alert('Please enter a query!');
+  const handleAddClient = async () => {
+    if (!newClientName || !newClientKeywords) {
+      alert('Please enter a client name and keywords!');
+      return;
+    }
+    try {
+      await axios.post('http://localhost:8000/clients', {
+        name: newClientName,
+        keywords: newClientKeywords.split(',').map(k => k.trim())
+      });
+      setNewClientName('');
+      setNewClientKeywords('');
+      fetchClients();
+    } catch (error) {
+      console.error('Error adding client:', error);
+      alert('Error adding client. Please try again.');
+    }
+  };
+
+  const handleQueryClient = async () => {
+    if (!selectedClient) {
+      alert('Please select a client!');
       return;
     }
 
+    setIsQuerying(true);
     try {
       const response = await axios.post('http://localhost:8000/query', {
-        query: query,
+        client: selectedClient.value
       });
       
       setResponses(response.data.responses);
     } catch (error) {
-      console.error('Error querying PDF:', error);
-      alert('Error querying PDF. Please try again.');
+      console.error('Error querying PDFs:', error);
+      alert('Error querying PDFs. Please try again.');
+    }
+    setIsQuerying(false);
+  };
+
+  const handleDeleteClient = async (clientName) => {
+    try {
+      await axios.delete(`http://localhost:8000/clients/${clientName}`);
+      fetchClients();
+    } catch (error) {
+      console.error('Error deleting client:', error);
+      alert('Error deleting client. Please try again.');
     }
   };
 
@@ -138,15 +183,42 @@ function App() {
         />
         <button onClick={handleUpload}>Upload PDF</button>
       </div>
+      <h2>Client Management</h2>
       <div>
         <input
           type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Enter your query"
+          value={newClientName}
+          onChange={(e) => setNewClientName(e.target.value)}
+          placeholder="Enter client name"
         />
-        <button onClick={handleQuery}>Submit Query</button>
+        <input
+          type="text"
+          value={newClientKeywords}
+          onChange={(e) => setNewClientKeywords(e.target.value)}
+          placeholder="Enter keywords (comma-separated)"
+        />
+        <button onClick={handleAddClient}>Add Client</button>
       </div>
+      <Select
+        value={selectedClient}
+        onChange={setSelectedClient}
+        options={clients.map(client => ({ value: client.name, label: client.name }))}
+        placeholder="Select Client"
+      />
+      {selectedClient && (
+        <div>
+          <h3>Keywords for {selectedClient.label}</h3>
+          <ul>
+            {clients.find(c => c.name === selectedClient.value).keywords.map((keyword, index) => (
+              <li key={index}>{keyword}</li>
+            ))}
+          </ul>
+          <button onClick={handleQueryClient} disabled={isQuerying}>
+            {isQuerying ? 'Querying...' : 'Query Client'}
+          </button>
+          <button onClick={() => handleDeleteClient(selectedClient.value)}>Delete Client</button>
+        </div>
+      )}
       <h2>Uploaded PDFs</h2>
       <ul>
         {pdfs.map((pdf) => (

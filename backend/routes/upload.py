@@ -45,10 +45,10 @@ async def upload_pdf(
         doc = fitz.open(stream=pdf_content, filetype="pdf")
         
         # Load existing metadata
-        extracted_pages = load_metadata()
+        metadata = load_metadata()
         
         # Store extracted pages and metadata
-        extracted_pages[pdf_id] = {
+        metadata[pdf_id] = {
             "publication_name": publication_name,
             "edition": edition,
             "date": date,
@@ -70,7 +70,7 @@ async def upload_pdf(
         doc.close()
         
         # Save updated metadata
-        save_metadata(extracted_pages)
+        save_metadata(metadata)
         
         logger.info(f"Successfully processed PDF: {file.filename}")
         return JSONResponse(content={"message": "PDF uploaded and pages extracted successfully", "pdf_id": pdf_id})
@@ -81,15 +81,15 @@ async def upload_pdf(
 @router.get("/list-pdfs")
 async def list_pdfs():
     logger.info("Fetching list of PDFs")
-    extracted_pages = load_metadata()
+    metadata = load_metadata()
     pdf_list = []
-    for pdf_id, pdf_data in extracted_pages.items():
+    for pdf_id, pdf_data in metadata.items():
         pdf_list.append({
             "pdf_id": pdf_id,
-            "publication_name": pdf_data["publication_name"],
-            "edition": pdf_data["edition"],
-            "date": pdf_data["date"],
-            "page_count": pdf_data["total_pages"]
+            "publication_name": pdf_data.get("publication_name", "Unknown"),
+            "edition": pdf_data.get("edition", "Unknown"),
+            "date": pdf_data.get("date", "Unknown"),
+            "page_count": pdf_data.get("total_pages", 0)
         })
     logger.info(f"Returning list of {len(pdf_list)} PDFs")
     return {"pdfs": pdf_list}

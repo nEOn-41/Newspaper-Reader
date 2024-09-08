@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import upload, query, delete
+from routes import upload, query, delete, clients
 from utils.utils import load_metadata
 from config import LOGGING_CONFIG
 import logging
@@ -25,6 +25,7 @@ app.add_middleware(
 app.include_router(upload.router)
 app.include_router(query.router)
 app.include_router(delete.router)
+app.include_router(clients.router)
 
 @app.on_event("startup")
 async def startup_event():
