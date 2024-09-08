@@ -12,3 +12,6 @@ venv/
 setup_project.py
 backend/uploaded_pdfs/
 backend/uploaded_pdfs/metadata.json
+
+# Exclude DATA folder
+/DATA/

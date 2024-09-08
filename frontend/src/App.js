@@ -57,7 +57,7 @@ function App() {
         },
       });
       setPdfId(response.data.pdf_id);
-      alert('PDF uploaded successfully!');
+      alert('PDF uploaded successfully and stored in the DATA folder!');
       fetchPDFs();  // Add this line to refresh the PDF list
       // Clear the form fields after successful upload
       setFile(null);

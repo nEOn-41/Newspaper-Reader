@@ -13,6 +13,7 @@ from pydantic import BaseModel
 import logging
 import shutil
 import json
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,12 +25,14 @@ load_dotenv()
 # Configure Gemini API
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
-# Create upload directory
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploaded_pdfs")
+# Update the UPLOAD_DIR path
+ROOT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT_DIR / "DATA"
+UPLOAD_DIR = DATA_DIR / "uploaded_pdfs"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Define a path for storing metadata
-METADATA_FILE = os.path.join(UPLOAD_DIR, "metadata.json")
+# Update the METADATA_FILE path
+METADATA_FILE = DATA_DIR / "metadata.json"
 
 # Load existing metadata on startup
 def load_metadata():
@@ -91,8 +94,8 @@ async def upload_pdf(
         # Generate a unique identifier for this PDF
         pdf_id = str(uuid.uuid4())
         
-        # Create a directory for this PDF
-        pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
+        # Update the pdf_dir path
+        pdf_dir = UPLOAD_DIR / pdf_id
         os.makedirs(pdf_dir, exist_ok=True)
         
         # Open the PDF using PyMuPDF
@@ -272,8 +275,8 @@ async def list_pdfs():
     pdf_list = []
     updated_extracted_pages = {}
     for pdf_id, pdf_data in extracted_pages.items():
-        pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
-        if os.path.exists(pdf_dir):
+        pdf_dir = UPLOAD_DIR / pdf_id
+        if pdf_dir.exists():
             pdf_list.append({
                 "pdf_id": pdf_id,
                 "publication_name": pdf_data["publication_name"],
@@ -298,8 +301,8 @@ async def delete_pdf(pdf_id: str):
         raise HTTPException(status_code=404, detail="PDF not found")
     
     # Remove the PDF directory
-    pdf_dir = os.path.join(UPLOAD_DIR, pdf_id)
-    if os.path.exists(pdf_dir):
+    pdf_dir = UPLOAD_DIR / pdf_id
+    if pdf_dir.exists():
         shutil.rmtree(pdf_dir)
     
     del extracted_pages[pdf_id]
