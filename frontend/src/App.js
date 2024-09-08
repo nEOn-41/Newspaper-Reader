@@ -72,6 +72,7 @@ function App() {
       }
       alert('Error uploading file. Please try again.');
     }
+    fetchPDFs();  // Refresh the list of PDFs  
   };
 
   const handleQuery = async () => {
