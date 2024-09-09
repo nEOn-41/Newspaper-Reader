@@ -46,6 +46,7 @@ async def upload_pdf(
         
         # Load existing metadata
         metadata = load_metadata()
+        logger.info(f"Loaded metadata before update: {metadata}")
         
         # Store extracted pages and metadata
         metadata[pdf_id] = {
@@ -71,6 +72,7 @@ async def upload_pdf(
         
         # Save updated metadata
         save_metadata(metadata)
+        logger.info(f"Saved updated metadata: {metadata}")
         
         logger.info(f"Successfully processed PDF: {file.filename}")
         return JSONResponse(content={"message": "PDF uploaded and pages extracted successfully", "pdf_id": pdf_id})

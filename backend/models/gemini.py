@@ -1,3 +1,4 @@
+import json
 import google.generativeai as genai
 from config import GEMINI_API_KEY, UPLOAD_DIR
 import io
@@ -25,14 +26,10 @@ model = genai.GenerativeModel(
 )
 
 SYSTEM_PROMPT = """
-You are an AI assistant specialized in analyzing newspaper pages. Your task is to examine the given newspaper page image and respond to queries about its content. Follow these guidelines:
+Do you see the following keywords anywhere on the page? Format your response as a JSON object with the following structure:
 
-1. Analyze the provided newspaper page image carefully.
-2. Focus on finding information related to the given KEYWORDS in the query.
-3. Provide concise and relevant responses.
-4. Format your response as a JSON object with the following structure:
-
-{
+{ 
+  "reasoning": "I can clearly see that (at least one)/(none) of the given keywords is/are on the page.",
   "retrieval": boolean,
   "keywords": [
     {
@@ -47,11 +44,11 @@ You are an AI assistant specialized in analyzing newspaper pages. Your task is t
   ]
 }
 
-- Set "retrieval" to true if any relevant information is found for at least one keyword, false otherwise.
+- Set "retrieval" to true if you find at least one keyword on the page, false otherwise.
 - Only include the "keywords" array if "retrieval" is true.
-- In the "keywords" array, only include keywords for which articles were found.
-- For each keyword with found articles, list all related articles on the page.
-- Provide a brief, informative summary for each article.
+- In the "keywords" array, only include keywords that were found on the page.
+- For each keyword with found article(s), list all the articles on the page that the keyword belongs to.
+- Provide the headline with a brief, informative 1-2 sentence summary for each article.
 
 Remember to consider the provided metadata (Publication, Edition, Date, Page) when analyzing the content.
 """
@@ -71,6 +68,9 @@ async def process_page(page, pdf_data, query):
             img.save(img_byte_arr, format='PNG')
             img_byte_arr = img_byte_arr.getvalue()
 
+        # Extract keywords from the query
+        keywords = query.split("Keywords:")[1].strip() if "Keywords:" in query else ""
+
         response = await model.generate_content_async([
             {
                 "mime_type": "image/png",
@@ -83,18 +83,31 @@ async def process_page(page, pdf_data, query):
             Date: {pdf_data['date']}
             Page: {page['number']}
             
-            Query: {query}
+            Keywords: {keywords}
             """
         ])
+        
+        # Attempt to parse the response as JSON
+        try:
+            json_response = json.loads(response.text)
+        except json.JSONDecodeError:
+            logger.warning(f"Invalid JSON response for page {page['id']}. Using fallback response.")
+            json_response = {
+                "retrieval": False,
+                "error": "Invalid JSON response from Gemini API"
+            }
         
         logger.info(f"Successfully processed page {page['id']}")
         return {
             "page_id": f"{page['id'].split('_')[0]}_{page['number']}",
-            "response": response.text
+            "response": json.dumps(json_response)  # Ensure we're sending a valid JSON string
         }
     except Exception as e:
         logger.error(f"Error processing page {page['id']}: {str(e)}")
         return {
             "page_id": f"{page['id'].split('_')[0]}_{page['number']}",
-            "error": str(e)
+            "response": json.dumps({
+                "retrieval": False,
+                "error": str(e)
+            })
         }

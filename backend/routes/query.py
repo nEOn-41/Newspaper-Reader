@@ -23,15 +23,20 @@ async def query_pdf(request: QueryRequest):
     logger.info(f"Received query for client: {client}")
     
     metadata = load_metadata()
-    extracted_pages = metadata.get("pdfs", {})
+    extracted_pages = metadata  # Change this line
     clients = load_clients()
+    
+    logger.info(f"Loaded metadata: {metadata}")
+    logger.info(f"Extracted pages: {extracted_pages}")
+    logger.info(f"Loaded clients: {clients}")
     
     if client not in clients:
         raise HTTPException(status_code=404, detail="Client not found")
     
     keywords = clients[client]
-    full_query = f"Can you find any article on the page with the following keywords: {', '.join(keywords)}?"
+    full_query = f"Keywords: {', '.join(keywords)}"
     
+    logger.info(f"Keywords for client {client}: {keywords}")
     logger.info(f"Number of PDFs to process: {len(extracted_pages)}")
     
     batch_size = 15

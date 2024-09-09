@@ -120,7 +120,22 @@ function App() {
         client: selectedClient.value
       });
       
-      setResponses(response.data.responses);
+      const validResponses = response.data.responses.map(item => {
+        try {
+          return {
+            ...item,
+            response: JSON.parse(item.response)
+          };
+        } catch (error) {
+          console.error(`Error parsing JSON for page ${item.page_id}:`, error);
+          return {
+            ...item,
+            response: { retrieval: false, error: "Invalid JSON response" }
+          };
+        }
+      });
+
+      setResponses(validResponses);
     } catch (error) {
       console.error('Error querying PDFs:', error);
       alert('Error querying PDFs. Please try again.');
@@ -234,7 +249,30 @@ function App() {
           {responses.map((response, index) => (
             <div key={index}>
               <h3>Page ID: {response.page_id}</h3>
-              <pre>{JSON.stringify(JSON.parse(response.response), null, 2)}</pre>
+              {response.response.error ? (
+                <p>Error: {response.response.error}</p>
+              ) : (
+                <div>
+                  <p><strong>Reasoning:</strong> {response.response.reasoning}</p>
+                  <p><strong>Retrieval:</strong> {response.response.retrieval ? 'Yes' : 'No'}</p>
+                  {response.response.keywords && (
+                    <div>
+                      <h4>Keywords Found:</h4>
+                      {response.response.keywords.map((keyword, kidx) => (
+                        <div key={kidx}>
+                          <h5>{keyword.keyword}</h5>
+                          {keyword.articles.map((article, aidx) => (
+                            <div key={aidx}>
+                              <p><strong>Headline:</strong> {article.headline}</p>
+                              <p><strong>Summary:</strong> {article.summary}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
