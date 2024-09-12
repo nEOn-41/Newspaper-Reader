@@ -236,9 +236,13 @@ function App() {
         <div>
           <h3>Keywords for {selectedClient.label}</h3>
           <ul>
-            {clients.find(c => c.name === selectedClient.value).keywords.map((keyword, index) => (
-              <li key={index}>{keyword}</li>
-            ))}
+            {clients.find(c => c.name === selectedClient.value)?.keywords ? (
+              clients.find(c => c.name === selectedClient.value).keywords.map((keyword, index) => (
+                <li key={index}>{keyword}</li>
+              ))
+            ) : (
+              <li>No keywords found for this client</li>
+            )}
           </ul>
           <button onClick={handleQueryClient} disabled={isQuerying}>
             {isQuerying ? 'Querying...' : 'Query Client'}

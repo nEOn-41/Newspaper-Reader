@@ -7,7 +7,7 @@ from PIL import Image
 import io
 from pathlib import Path
 from utils.utils import save_metadata, load_metadata
-from config import UPLOAD_DIR, METADATA_FILE
+from config import UPLOAD_DIR, METADATA_FILE, PDF_EXTRACTION_ZOOM
 import logging
 
 logger = logging.getLogger(__name__)
@@ -57,15 +57,19 @@ async def upload_pdf(
         
         for page_num in range(len(doc)):
             page = doc[page_num]
-            pix = page.get_pixmap()
+            
+            # Set zoom to 2.0 for better quality, especially for vector content
+            zoom = PDF_EXTRACTION_ZOOM
+            mat = fitz.Matrix(zoom, zoom)
+            pix = page.get_pixmap(matrix=mat, alpha=False)
             
             # Convert PyMuPDF pixmap to PIL Image
             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
             
             image_path = os.path.join(pdf_dir, f"{page_num + 1}.png")
             
-            # Save the image as PNG
-            img.save(image_path, "PNG")
+            # Save the image as PNG with high quality
+            img.save(image_path, "PNG", quality=95)
         
         doc.close()
         

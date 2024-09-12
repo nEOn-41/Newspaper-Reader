@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict, Any
 import json
 from config import CLIENT_DB_FILE
 
@@ -9,6 +9,8 @@ router = APIRouter()
 class Client(BaseModel):
     name: str
     keywords: List[str]
+    details: str
+    structured_details: Dict[str, Any]
 
 def load_clients():
     if CLIENT_DB_FILE.exists():
@@ -27,14 +29,18 @@ async def add_client(client: Client):
     if client.name in clients:
         raise HTTPException(status_code=400, detail="Client already exists")
     
-    clients[client.name] = client.keywords
+    clients[client.name] = {
+        "keywords": client.keywords,
+        "details": client.details,
+        "structured_details": client.structured_details
+    }
     save_clients(clients)
     return {"message": f"Client {client.name} added successfully"}
 
 @router.get("/clients")
 async def get_clients():
     clients = load_clients()
-    return {"clients": [{"name": name, "keywords": keywords} for name, keywords in clients.items()]}
+    return {"clients": [{"name": name, **data} for name, data in clients.items()]}
 
 @router.put("/clients/{client_name}")
 async def update_client(client_name: str, client: Client):
@@ -42,7 +48,11 @@ async def update_client(client_name: str, client: Client):
     if client_name not in clients:
         raise HTTPException(status_code=404, detail="Client not found")
     
-    clients[client_name] = client.keywords
+    clients[client_name] = {
+        "keywords": client.keywords,
+        "details": client.details,
+        "structured_details": client.structured_details
+    }
     save_clients(clients)
     return {"message": f"Client {client_name} updated successfully"}
 
