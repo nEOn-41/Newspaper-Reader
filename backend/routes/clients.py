@@ -10,7 +10,6 @@ class Client(BaseModel):
     name: str
     keywords: List[str]
     details: str
-    structured_details: Dict[str, Any]
 
 def load_clients():
     if CLIENT_DB_FILE.exists():
@@ -31,8 +30,7 @@ async def add_client(client: Client):
     
     clients[client.name] = {
         "keywords": client.keywords,
-        "details": client.details,
-        "structured_details": client.structured_details
+        "details": client.details
     }
     save_clients(clients)
     return {"message": f"Client {client.name} added successfully"}
@@ -50,8 +48,7 @@ async def update_client(client_name: str, client: Client):
     
     clients[client_name] = {
         "keywords": client.keywords,
-        "details": client.details,
-        "structured_details": client.structured_details
+        "details": client.details
     }
     save_clients(clients)
     return {"message": f"Client {client_name} updated successfully"}
