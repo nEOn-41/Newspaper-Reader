@@ -33,16 +33,13 @@ async def query_pdf(request: QueryRequest):
         extracted_pages = metadata.get("pdfs", {})
         pdf_count = get_pdf_count()
         logger.info(f"Total PDFs in metadata: {pdf_count}")
-        logger.info(f"Metadata file location: {METADATA_FILE}")
-        logger.info(f"Metadata file exists: {os.path.exists(METADATA_FILE)}")
-        logger.info(f"Current metadata content: {json.dumps(metadata, indent=2)}")
         
         clients = load_clients()
         
         if client not in clients:
             raise HTTPException(status_code=404, detail="Client not found")
         
-        keywords = clients[client]
+        keywords = clients[client]['keywords']
         system_prompt = get_system_prompt()
         default_additional_query = get_additional_query()
         

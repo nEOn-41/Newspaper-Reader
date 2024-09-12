@@ -32,10 +32,8 @@ async def process_page(page, pdf_data, query):
         # Open the image using PIL
         image_path = os.path.join(UPLOAD_DIR, page['id'].split('_')[0], f"{page['number']}.png")
         with Image.open(image_path) as img:
-            # Convert the image to RGB mode if it's not already
             img = img.convert('RGB')
             
-            # Create a byte stream of the image
             img_byte_arr = io.BytesIO()
             img.save(img_byte_arr, format='PNG')
             img_byte_arr = img_byte_arr.getvalue()
@@ -43,20 +41,23 @@ async def process_page(page, pdf_data, query):
         # Get the dynamic system prompt
         system_prompt = get_system_prompt()
 
+        # Construct the full query
+        full_query = f"""
+        {system_prompt}
+        Publication: {pdf_data['publication_name']}
+        Edition: {pdf_data['edition']}
+        Date: {pdf_data['date']}
+        Page: {page['number']}
+        
+        {query}
+        """
+
         response = await model.generate_content_async([
             {
                 "mime_type": "image/png",
                 "data": img_byte_arr
             },
-            f"""
-            {system_prompt}
-            Publication: {pdf_data['publication_name']}
-            Edition: {pdf_data['edition']}
-            Date: {pdf_data['date']}
-            Page: {page['number']}
-            
-            Query: {query}
-            """
+            full_query
         ])
         
         logger.info(f"Successfully processed page {page['id']}")
