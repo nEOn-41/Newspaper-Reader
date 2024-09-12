@@ -5,12 +5,46 @@ from models.gemini import process_page
 
 logger = logging.getLogger(__name__)
 
+def remove_duplicate_articles(keyword_data):
+    if 'articles' not in keyword_data:
+        return keyword_data
+    seen = set()
+    unique_articles = []
+    for article in keyword_data['articles']:
+        article_tuple = (article.get('headline', ''), article.get('summary', ''))
+        if article_tuple not in seen:
+            seen.add(article_tuple)
+            unique_articles.append(article)
+    keyword_data['articles'] = unique_articles
+    return keyword_data
+
+def clean_response(response_data):
+    if isinstance(response_data, str):
+        try:
+            response_data = json.loads(response_data)
+        except json.JSONDecodeError:
+            logger.error(f"Invalid JSON in response: {response_data}")
+            return None
+
+    if not isinstance(response_data, dict):
+        logger.error(f"Invalid response structure: {response_data}")
+        return None
+
+    # Handle the case where retrieval is false
+    if 'retrieval' in response_data and response_data['retrieval'] is False:
+        return response_data
+
+    # If keywords exist, remove duplicate articles
+    if 'keywords' in response_data:
+        response_data['keywords'] = [remove_duplicate_articles(keyword) for keyword in response_data['keywords']]
+
+    return response_data
+
 async def retry_failed_responses(failed_responses, query):
     logger.info(f"Retrying {len(failed_responses)} failed responses")
     retried_responses = []
 
     for response in failed_responses:
-        # Check if 'page' and 'pdf_data' keys exist in the response
         if 'page' not in response or 'pdf_data' not in response:
             logger.error(f"Invalid response structure: {response}")
             continue
@@ -23,14 +57,14 @@ async def retry_failed_responses(failed_responses, query):
             try:
                 retried_response = await process_page(page, pdf_data, query)
                 
-                # Validate the response structure
                 if 'page_id' in retried_response and 'response' in retried_response:
-                    try:
-                        json.loads(retried_response['response'])  # Check if it's valid JSON
+                    cleaned_response = clean_response(retried_response['response'])
+                    if cleaned_response is not None:
+                        retried_response['response'] = json.dumps(cleaned_response)
                         retried_responses.append(retried_response)
-                        break  # Success, exit retry loop
-                    except json.JSONDecodeError:
-                        logger.warning(f"Invalid JSON in response for page {page['id']} (Attempt {attempt + 1})")
+                        break
+                    else:
+                        logger.warning(f"Invalid response structure for page {page['id']} (Attempt {attempt + 1})")
                 else:
                     logger.warning(f"Invalid response structure for page {page['id']} (Attempt {attempt + 1})")
             except Exception as e:
@@ -50,10 +84,11 @@ def identify_failed_responses(responses):
             if 'error' in response or 'response' not in response:
                 failed_responses.append(response)
             else:
-                try:
-                    json.loads(response['response'])  # Check if it's valid JSON
+                cleaned_response = clean_response(response['response'])
+                if cleaned_response is not None:
+                    response['response'] = json.dumps(cleaned_response)
                     valid_responses.append(response)
-                except json.JSONDecodeError:
+                else:
                     failed_responses.append(response)
         else:
             logger.error(f"Invalid response type: {type(response)}")
