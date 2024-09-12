@@ -14,6 +14,7 @@ function App() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [newClientName, setNewClientName] = useState('');
   const [newClientKeywords, setNewClientKeywords] = useState('');
+  const [newClientDetails, setNewClientDetails] = useState('');
   const [isQuerying, setIsQuerying] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState('');
   const [additionalQuery, setAdditionalQuery] = useState('');
@@ -103,17 +104,19 @@ function App() {
   };
 
   const handleAddClient = async () => {
-    if (!newClientName || !newClientKeywords) {
-      alert('Please enter a client name and keywords!');
+    if (!newClientName || !newClientKeywords || !newClientDetails) {
+      alert('Please enter a client name, keywords, and details!');
       return;
     }
     try {
       await axios.post('http://localhost:8000/clients', {
         name: newClientName,
-        keywords: newClientKeywords.split(',').map(k => k.trim())
+        keywords: newClientKeywords.split(',').map(k => k.trim()),
+        details: newClientDetails
       });
       setNewClientName('');
       setNewClientKeywords('');
+      setNewClientDetails('');
       fetchClients();
     } catch (error) {
       console.error('Error adding client:', error);
@@ -224,6 +227,11 @@ function App() {
           onChange={(e) => setNewClientKeywords(e.target.value)}
           placeholder="Enter keywords (comma-separated)"
         />
+        <textarea
+          value={newClientDetails}
+          onChange={(e) => setNewClientDetails(e.target.value)}
+          placeholder="Enter client details"
+        />
         <button onClick={handleAddClient}>Add Client</button>
       </div>
       <Select
@@ -234,6 +242,8 @@ function App() {
       />
       {selectedClient && (
         <div>
+          <h3>Details for {selectedClient.label}</h3>
+          <p>{clients.find(c => c.name === selectedClient.value)?.details}</p>
           <h3>Keywords for {selectedClient.label}</h3>
           <ul>
             {clients.find(c => c.name === selectedClient.value)?.keywords ? (
