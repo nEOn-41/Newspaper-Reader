@@ -5,6 +5,7 @@ from utils.utils import load_metadata
 from config import LOGGING_CONFIG
 import logging
 from logging.config import dictConfig
+from models.system_prompt import load_system_prompt, save_system_prompt
 
 # Configure logging
 dictConfig(LOGGING_CONFIG)
@@ -32,6 +33,16 @@ async def startup_event():
     # Load existing metadata on startup
     load_metadata()
     logger.info("Application started")
+
+@app.get("/system-prompt")
+async def get_system_prompt():
+    system_prompt, additional_query = load_system_prompt()
+    return {"system_prompt": system_prompt, "additional_query": additional_query}
+
+@app.post("/system-prompt")
+async def update_system_prompt(data: dict):
+    save_system_prompt(data.get('system_prompt'), data.get('additional_query'))
+    return {"message": "System prompt and additional query updated successfully"}
 
 if __name__ == "__main__":
     import uvicorn

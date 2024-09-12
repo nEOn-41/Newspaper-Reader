@@ -7,7 +7,7 @@ from PIL import Image
 import io
 from pathlib import Path
 from utils.utils import save_metadata, load_metadata
-from config import UPLOAD_DIR
+from config import UPLOAD_DIR, METADATA_FILE
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ async def upload_pdf(
         metadata = load_metadata()
         
         # Store extracted pages and metadata
-        metadata[pdf_id] = {
+        metadata['pdfs'][pdf_id] = {
             "publication_name": publication_name,
             "edition": edition,
             "date": date,
@@ -73,6 +73,9 @@ async def upload_pdf(
         save_metadata(metadata)
         
         logger.info(f"Successfully processed PDF: {file.filename}")
+        logger.info(f"Metadata file location: {METADATA_FILE}")
+        logger.info(f"Current metadata content: {metadata}")
+        
         return JSONResponse(content={"message": "PDF uploaded and pages extracted successfully", "pdf_id": pdf_id})
     except Exception as e:
         logger.error(f"Error in upload_pdf: {str(e)}")
@@ -83,7 +86,7 @@ async def list_pdfs():
     logger.info("Fetching list of PDFs")
     metadata = load_metadata()
     pdf_list = []
-    for pdf_id, pdf_data in metadata.items():
+    for pdf_id, pdf_data in metadata.get('pdfs', {}).items():
         pdf_list.append({
             "pdf_id": pdf_id,
             "publication_name": pdf_data.get("publication_name", "Unknown"),

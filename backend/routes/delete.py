@@ -7,9 +7,9 @@ router = APIRouter()
 
 @router.delete("/delete-pdf/{pdf_id}")
 async def delete_pdf(pdf_id: str):
-    extracted_pages = load_metadata()
+    metadata = load_metadata()
     
-    if pdf_id not in extracted_pages:
+    if pdf_id not in metadata['pdfs']:
         raise HTTPException(status_code=404, detail="PDF not found")
     
     # Remove the PDF directory
@@ -17,9 +17,10 @@ async def delete_pdf(pdf_id: str):
     if pdf_dir.exists():
         shutil.rmtree(pdf_dir)
     
-    del extracted_pages[pdf_id]
+    # Remove the PDF from metadata
+    del metadata['pdfs'][pdf_id]
     
     # Save updated metadata
-    save_metadata(extracted_pages)
+    save_metadata(metadata)
     
     return {"message": f"PDF with id {pdf_id} has been deleted"}

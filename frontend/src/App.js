@@ -15,6 +15,8 @@ function App() {
   const [newClientName, setNewClientName] = useState('');
   const [newClientKeywords, setNewClientKeywords] = useState('');
   const [isQuerying, setIsQuerying] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [additionalQuery, setAdditionalQuery] = useState('');
 
   const [publications] = useState([
     { value: 'The Times of India', label: 'The Times of India' }
@@ -28,6 +30,7 @@ function App() {
   useEffect(() => {
     fetchPDFs();
     fetchClients();
+    fetchSystemPrompt();
   }, []);
 
   const fetchPDFs = async () => {
@@ -45,6 +48,16 @@ function App() {
       setClients(response.data.clients);
     } catch (error) {
       console.error('Error fetching clients:', error);
+    }
+  };
+
+  const fetchSystemPrompt = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/system-prompt');
+      setSystemPrompt(response.data.system_prompt);
+      setAdditionalQuery(response.data.additional_query);
+    } catch (error) {
+      console.error('Error fetching system prompt:', error);
     }
   };
 
@@ -117,7 +130,8 @@ function App() {
     setIsQuerying(true);
     try {
       const response = await axios.post('http://localhost:8000/query', {
-        client: selectedClient.value
+        client: selectedClient.value,
+        additional_query: additionalQuery
       });
       
       setResponses(response.data.responses);
@@ -155,6 +169,19 @@ function App() {
 
   const handleEditionChange = (selectedOption) => {
     setEdition(selectedOption ? selectedOption.value : '');
+  };
+
+  const handleUpdateSystemPrompt = async () => {
+    try {
+      await axios.post('http://localhost:8000/system-prompt', {
+        system_prompt: systemPrompt,
+        additional_query: additionalQuery
+      });
+      alert('System prompt and additional query updated successfully!');
+    } catch (error) {
+      console.error('Error updating system prompt:', error);
+      alert('Error updating system prompt and additional query. Please try again.');
+    }
   };
 
   return (
@@ -239,6 +266,22 @@ function App() {
           ))}
         </div>
       )}
+      <h2>System Prompt and Additional Query</h2>
+      <textarea
+        value={systemPrompt}
+        onChange={(e) => setSystemPrompt(e.target.value)}
+        placeholder="Enter system prompt"
+        rows={5}
+        cols={50}
+      />
+      <textarea
+        value={additionalQuery}
+        onChange={(e) => setAdditionalQuery(e.target.value)}
+        placeholder="Enter additional query"
+        rows={2}
+        cols={50}
+      />
+      <button onClick={handleUpdateSystemPrompt}>Update System Prompt and Additional Query</button>
     </div>
   );
 }
