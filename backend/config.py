@@ -53,3 +53,6 @@ LOGGING_CONFIG = {
         }
     }
 }
+
+# Add this to your existing config.py
+PDF_EXTRACTION_ZOOM = 2.0
