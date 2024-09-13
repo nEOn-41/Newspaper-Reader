@@ -9,7 +9,14 @@ const ResponsesDisplay = ({ responses }) => {
           {responses.map((response, index) => (
             <div key={index}>
               <h3>Page ID: {response.page_id}</h3>
-              <pre>{JSON.stringify(JSON.parse(response.response), null, 2)}</pre>
+              <h4>First LLM Response:</h4>
+              <pre>{JSON.stringify(JSON.parse(response.first_response), null, 2)}</pre>
+              {response.second_response && (
+                <>
+                  <h4>Second LLM Response:</h4>
+                  <pre>{JSON.stringify(JSON.parse(response.second_response), null, 2)}</pre>
+                </>
+              )}
             </div>
           ))}
         </div>

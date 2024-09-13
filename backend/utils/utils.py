@@ -1,6 +1,8 @@
+# utils/utils.py
+
 import json
 import os
-from config import METADATA_FILE, DATA_DIR
+from config import METADATA_FILE, DATA_DIR, CLIENT_DB_FILE
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,3 +41,13 @@ def get_pdf_count():
     count = len(metadata['pdfs'])
     logger.info(f"PDF count: {count}")
     return count
+
+def load_clients():
+    logger.info(f"Loading clients from {CLIENT_DB_FILE}")
+    if os.path.exists(CLIENT_DB_FILE):
+        with open(CLIENT_DB_FILE, 'r') as f:
+            clients = json.load(f)
+        return clients
+    else:
+        logger.warning(f"Client database file not found at {CLIENT_DB_FILE}")
+        return {}

@@ -1,14 +1,16 @@
+# batch_processing.py
+
 import asyncio
 from models.gemini import process_page
 import logging
 
 logger = logging.getLogger(__name__)
 
-async def process_batch(batch, query):
+async def process_batch(batch, query, client_name):
     logger.info(f"Processing batch of {len(batch)} pages")
     tasks = []
     for page in batch:
-        task = asyncio.create_task(process_page(page, page["pdf_data"], query))
+        task = asyncio.create_task(process_page(page, page["pdf_data"], query, client_name))
         tasks.append(task)
     
     try:

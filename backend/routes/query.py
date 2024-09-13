@@ -1,3 +1,5 @@
+# query.py
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
@@ -62,12 +64,12 @@ async def query_pdf(request: QueryRequest):
                 })
                 
                 if len(current_batch) == batch_size:
-                    batch_responses = await process_batch(current_batch, full_query)
+                    batch_responses = await process_batch(current_batch, full_query, client)
                     valid_responses, failed_responses = identify_failed_responses(batch_responses)
                     responses.extend(valid_responses)
                     
                     if failed_responses:
-                        retried_responses = await retry_failed_responses(failed_responses, full_query)
+                        retried_responses = await retry_failed_responses(failed_responses, full_query, client)
                         responses.extend(retried_responses)
                     
                     current_batch = []
@@ -77,16 +79,23 @@ async def query_pdf(request: QueryRequest):
         
         # Process any remaining pages in the last batch
         if current_batch:
-            batch_responses = await process_batch(current_batch, full_query)
+            batch_responses = await process_batch(current_batch, full_query, client)
             valid_responses, failed_responses = identify_failed_responses(batch_responses)
             responses.extend(valid_responses)
             
             if failed_responses:
-                retried_responses = await retry_failed_responses(failed_responses, full_query)
+                retried_responses = await retry_failed_responses(failed_responses, full_query, client)
                 responses.extend(retried_responses)
         
         logger.info(f"Query processing complete. Total responses: {len(responses)}")
-        return {"responses": [{"page_id": r.get("page_id"), "response": r.get("response")} for r in responses if r.get("page_id") and r.get("response")]}
+        return {"responses": [
+            {
+                "page_id": r.get("page_id"),
+                "first_response": r.get("first_response"),
+                "second_response": r.get("second_response")
+            } 
+            for r in responses if r.get("page_id")
+        ]}
 
     except Exception as e:
         logger.error(f"An error occurred during query processing: {str(e)}")
