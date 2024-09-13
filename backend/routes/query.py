@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import List
 import asyncio
 from models.gemini import process_page
 from models.system_prompt import get_system_prompt, get_additional_query
@@ -7,7 +8,6 @@ from utils.utils import load_metadata, get_pdf_count
 from utils.batch_processing import process_batch
 from utils.retry_processor import identify_failed_responses, retry_failed_responses
 from config import UPLOAD_DIR, METADATA_FILE
-from routes.clients import load_clients
 import logging
 import os
 import json
@@ -18,11 +18,13 @@ router = APIRouter()
 
 class QueryRequest(BaseModel):
     client: str
+    keywords: List[str]
     additional_query: str = ""
 
 @router.post("/query")
 async def query_pdf(request: QueryRequest):
     client = request.client
+    keywords = request.keywords
     additional_query = request.additional_query
     responses = []
     
@@ -33,16 +35,7 @@ async def query_pdf(request: QueryRequest):
         extracted_pages = metadata.get("pdfs", {})
         pdf_count = get_pdf_count()
         logger.info(f"Total PDFs in metadata: {pdf_count}")
-        logger.info(f"Metadata file location: {METADATA_FILE}")
-        logger.info(f"Metadata file exists: {os.path.exists(METADATA_FILE)}")
-        logger.info(f"Current metadata content: {json.dumps(metadata, indent=2)}")
         
-        clients = load_clients()
-        
-        if client not in clients:
-            raise HTTPException(status_code=404, detail="Client not found")
-        
-        keywords = clients[client]
         system_prompt = get_system_prompt()
         default_additional_query = get_additional_query()
         
