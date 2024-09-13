@@ -1,3 +1,5 @@
+# config.py
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -54,5 +56,9 @@ LOGGING_CONFIG = {
     }
 }
 
-# Add this to your existing config.py
+# PDF extraction zoom level
 PDF_EXTRACTION_ZOOM = 2.0
+
+# Rate limiting configurations
+BATCH_SIZE = 15  # Maximum number of requests per batch
+RATE_LIMIT_INTERVAL = 60  # Cooldown period in seconds after each batch

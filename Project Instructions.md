@@ -24,7 +24,6 @@ We are building an automated media monitoring tool designed to help clients trac
    - Users can **add clients** through the interface.
    - Each client will have a set of **keywords** attached to them, which will be used to search through the uploaded newspaper pages.
    - Keywords for each client are saved in the database and can be updated or removed as necessary.
-   - **client_details**: This variable stores the client's description or background information (e.g., industry, relevant context). These details will not be sent to the Gemini API but will be used for validation in the second LLM layer.
 
 4. **Query Processing**:
    - Users submit a query based on the client, and the system automatically adds:
@@ -36,7 +35,7 @@ We are building an automated media monitoring tool designed to help clients trac
 
 5. **Validation Layer (Second LLM)**:
    - **(Yet to be implemented)**: A second LLM layer will validate the responses from the first LLM (Gemini) and assess whether the keywords are correctly matched to the articles.
-   - This layer will use the **client_details** and the context of the keywords to ensure accuracy. It will verify whether the keywords are relevant to the article and return a validation response in JSON format, indicating whether the match is valid or not.
+   - This layer will verify whether the keywords are relevant to the article and return a validation response in JSON format, indicating whether the match is valid or not.
 
 6. **Invalid JSON Handling**:
    - A mechanism has been introduced to handle situations where the Gemini API returns invalid JSON responses.

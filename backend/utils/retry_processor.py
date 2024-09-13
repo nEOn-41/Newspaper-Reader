@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 from models.gemini import process_page
+from utils.request_pipeline import add_request_to_queue
 
 logger = logging.getLogger(__name__)
 
@@ -51,28 +52,25 @@ async def retry_failed_responses(failed_responses, query):
 
         page = response['page']
         pdf_data = response['pdf_data']
-        
+
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                retried_response = await process_page(page, pdf_data, query)
-                
-                if 'page_id' in retried_response and 'response' in retried_response:
-                    cleaned_response = clean_response(retried_response['response'])
-                    if cleaned_response is not None:
-                        retried_response['response'] = json.dumps(cleaned_response)
-                        retried_responses.append(retried_response)
-                        break
-                    else:
-                        logger.warning(f"Invalid response structure for page {page['id']} (Attempt {attempt + 1})")
-                else:
-                    logger.warning(f"Invalid response structure for page {page['id']} (Attempt {attempt + 1})")
+                # Prepare content as in process_page
+                content = ...  # Same as in process_page
+                future = add_request_to_queue(content)
+                retried_response = await future
+
+                # Process the retried_response as needed
+                ...
+
+                retried_responses.append(retried_response)
+                break  # Exit the retry loop on success
             except Exception as e:
-                logger.error(f"Error processing page {page['id']} (Attempt {attempt + 1}): {str(e)}")
-            
-            if attempt < max_retries - 1:
-                await asyncio.sleep(5)  # Wait 5 seconds before retrying
-    
+                logger.error(f"Error retrying page {page['id']} (Attempt {attempt + 1}): {str(e)}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(5)  # Wait before retrying
+
     return retried_responses
 
 def identify_failed_responses(responses):

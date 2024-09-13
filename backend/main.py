@@ -1,3 +1,5 @@
+# main.py
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import upload, query, delete, clients
@@ -6,6 +8,8 @@ from config import LOGGING_CONFIG
 import logging
 from logging.config import dictConfig
 from models.system_prompt import load_system_prompt, save_system_prompt
+import asyncio  # Import asyncio
+from utils.request_pipeline import request_worker  # Import request_worker
 
 # Configure logging
 dictConfig(LOGGING_CONFIG)
@@ -33,6 +37,8 @@ async def startup_event():
     # Load existing metadata on startup
     load_metadata()
     logger.info("Application started")
+    # Start the request worker
+    asyncio.create_task(request_worker())
 
 @app.get("/system-prompt")
 async def get_system_prompt():
