@@ -2,10 +2,10 @@
 
 import json
 import logging
-from models.gemini_model import model  # Ensure this path is correct
-from models.system_prompt import get_second_system_prompt
-from utils.request_pipeline import add_request_to_queue
-from utils.general_utils import load_clients  # Correct import
+from ..models.gemini_model import model
+from ..models.system_prompt import get_second_system_prompt
+from ..utils.request_pipeline import add_request_to_queue
+from ..utils.general_utils import load_clients
 
 logger = logging.getLogger(__name__)
 

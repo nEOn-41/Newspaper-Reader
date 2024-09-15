@@ -2,8 +2,8 @@
 
 import asyncio
 import logging
-from config import BATCH_SIZE, RATE_LIMIT_INTERVAL
-from models.gemini_model import model  # Import model from gemini_model.py
+from ..config import BATCH_SIZE, RATE_LIMIT_INTERVAL
+from ..models.gemini_model import model
 
 logger = logging.getLogger(__name__)
 

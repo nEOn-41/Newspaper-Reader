@@ -5,10 +5,10 @@ import io
 import json
 from PIL import Image
 import logging
-from services.llm_layer_one import analyze_page_with_llm_one
-from services.llm_layer_two import validate_llm_one_response
-from utils.general_utils import load_clients
-from config import UPLOAD_DIR
+from ..services.llm_layer_one import analyze_page_with_llm_one
+from ..services.llm_layer_two import validate_llm_one_response
+from ..utils.general_utils import load_clients
+from ..config import UPLOAD_DIR
 
 logger = logging.getLogger(__name__)
 

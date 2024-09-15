@@ -1,7 +1,7 @@
 # models/gemini_model.py
 
 import google.generativeai as genai
-from config import GEMINI_API_KEY
+from ..config import GEMINI_API_KEY
 import logging
 
 logger = logging.getLogger(__name__)

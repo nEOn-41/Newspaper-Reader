@@ -2,7 +2,7 @@
 
 import json
 import os
-from config import METADATA_FILE, CLIENT_DB_FILE
+from ..config import METADATA_FILE, CLIENT_DB_FILE
 import logging
 
 logger = logging.getLogger(__name__)

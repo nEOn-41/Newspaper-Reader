@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 import shutil
-from utils.general_utils import load_metadata, save_metadata
-from config import UPLOAD_DIR
+from ..utils.general_utils import load_metadata, save_metadata
+from ..config import UPLOAD_DIR
 
 router = APIRouter()
 

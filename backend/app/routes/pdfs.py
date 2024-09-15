@@ -1,7 +1,7 @@
 # backend/app/routes/pdfs.py
 
 from fastapi import APIRouter, HTTPException
-from utils.general_utils import load_metadata
+from ..utils.general_utils import load_metadata
 import logging
 
 logger = logging.getLogger(__name__)

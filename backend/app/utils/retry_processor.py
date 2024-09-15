@@ -3,7 +3,7 @@
 import asyncio
 import json
 import logging
-from models.gemini import process_page
+from ..models.gemini import process_page
 
 logger = logging.getLogger(__name__)
 

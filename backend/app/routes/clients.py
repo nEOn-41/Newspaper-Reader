@@ -5,11 +5,10 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 import json
 import logging
-from config import CLIENT_DB_FILE
-from utils.general_utils import load_clients, save_metadata
+from ..config import CLIENT_DB_FILE
+from ..utils.general_utils import load_clients, save_metadata
 
 # Add this line to configure the logger
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 router = APIRouter()

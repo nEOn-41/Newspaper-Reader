@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException
 from fastapi.responses import JSONResponse
-from services.pdf_processor import PDFProcessor
-from utils.api_utils import success_response, error_response
+from ..services.pdf_processor import PDFProcessor
+from ..utils.api_utils import success_response, error_response
 import logging
 
 logger = logging.getLogger(__name__)

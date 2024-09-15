@@ -6,10 +6,9 @@ import fitz  # PyMuPDF
 from PIL import Image
 from pathlib import Path
 import logging
-from utils.file_utils import save_image
-from utils.general_utils import load_metadata, save_metadata
-from config import UPLOAD_DIR, METADATA_FILE, PDF_EXTRACTION_ZOOM
-
+from ..utils.file_utils import save_image
+from ..utils.general_utils import load_metadata, save_metadata
+from ..config import UPLOAD_DIR, METADATA_FILE, PDF_EXTRACTION_ZOOM
 logger = logging.getLogger(__name__)
 
 class PDFProcessor:

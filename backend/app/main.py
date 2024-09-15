@@ -2,14 +2,14 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import upload, query, delete, clients, pdfs  # Import the new 'pdfs' route
-from utils.general_utils import load_metadata
-from config import LOGGING_CONFIG
+from .routes import upload, query, delete, clients, pdfs
+from .utils.general_utils import load_metadata
+from .config import LOGGING_CONFIG
 import logging
 from logging.config import dictConfig
-from models.system_prompt import load_system_prompt, save_system_prompt
+from .models.system_prompt import load_system_prompt, save_system_prompt
 import asyncio
-from utils.request_pipeline import request_worker
+from .utils.request_pipeline import request_worker
 
 # Configure logging
 dictConfig(LOGGING_CONFIG)
@@ -31,7 +31,7 @@ app.include_router(upload.router)
 app.include_router(query.router)
 app.include_router(delete.router)
 app.include_router(clients.router)
-app.include_router(pdfs.router)  # Include the new 'pdfs' router
+app.include_router(pdfs.router)  # Include the pdfs router
 
 @app.on_event("startup")
 async def startup_event():
