@@ -15,3 +15,6 @@ backend/uploaded_pdfs/metadata.json
 
 # Exclude DATA folder
 /DATA/
+
+backend/DATA/
+Knowledge_base/

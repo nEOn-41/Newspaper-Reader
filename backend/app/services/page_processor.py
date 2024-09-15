@@ -7,7 +7,19 @@ logger = logging.getLogger(__name__)
 async def process_page(page, pdf_data, query, client_name):
     try:
         logger.info(f"Processing page {page['id']}")
+        # Update this line to construct the image path
         image_path = os.path.join(UPLOAD_DIR, page['id'].split('_')[0], f"{page['number']}.png")
+        
+        # Add this line to check if the image file exists
+        if not os.path.exists(image_path):
+            logger.error(f"Image file not found: {image_path}")
+            return {
+                "page_id": page['id'],
+                "error": f"Image file not found: {image_path}"
+            }
+
+        # Add the image_path to the page dictionary
+        page['image_path'] = image_path
 
         from .llm_layer_one import analyze_page_with_llm_one
         from .llm_layer_two import validate_llm_one_response

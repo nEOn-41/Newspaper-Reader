@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from ..models.system_prompt import get_system_prompt
 from ..utils.request_pipeline import add_request_to_queue
 
@@ -8,7 +9,14 @@ logger = logging.getLogger(__name__)
 async def analyze_page_with_llm_one(page, pdf_data, query, client_name):
     try:
         logger.info(f"LLM Layer One: Processing page {page['id']}")
-        image_path = page['image_path']  # Assuming 'image_path' is part of the page data
+        image_path = page['image_path']  # Use the image_path from the page dictionary
+
+        if not os.path.exists(image_path):
+            logger.error(f"LLM Layer One: Image file not found: {image_path}")
+            return {
+                "page_id": page['id'],
+                "error": f"Image file not found: {image_path}"
+            }
 
         with open(image_path, 'rb') as img_file:
             img_byte_arr = img_file.read()
