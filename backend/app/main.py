@@ -7,7 +7,7 @@ from .utils.general_utils import load_metadata
 from .config import LOGGING_CONFIG
 import logging
 from logging.config import dictConfig
-from .models.system_prompt import load_system_prompt, save_system_prompt
+from .models.system_prompt import load_system_prompt, save_system_prompt, get_system_prompt, get_additional_query
 import asyncio
 from .utils.request_pipeline import request_worker
 
@@ -42,12 +42,13 @@ async def startup_event():
     asyncio.create_task(request_worker())
 
 @app.get("/system-prompt")
-async def get_system_prompt():
-    system_prompt, additional_query = load_system_prompt()
+async def get_system_prompt_route():
+    system_prompt = get_system_prompt()
+    additional_query = get_additional_query()
     return {"system_prompt": system_prompt, "additional_query": additional_query}
 
 @app.post("/system-prompt")
-async def update_system_prompt(data: dict):
+async def update_system_prompt_route(data: dict):
     save_system_prompt(data.get('system_prompt'), data.get('additional_query'))
     return {"message": "System prompt and additional query updated successfully"}
 
