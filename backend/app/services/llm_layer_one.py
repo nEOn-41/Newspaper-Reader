@@ -1,8 +1,5 @@
-# backend/app/services/llm_layer_one.py
-
 import json
 import logging
-from ..models.gemini_model import model
 from ..models.system_prompt import get_system_prompt
 from ..utils.request_pipeline import add_request_to_queue
 
@@ -32,6 +29,9 @@ async def analyze_page_with_llm_one(page, pdf_data, query, client_name):
             Query: {query}
             """
         ]
+
+        # Import the model here to avoid circular imports
+        from ..models.gemini_model import model
 
         # Add the request to the queue and await the result
         future = add_request_to_queue(content)

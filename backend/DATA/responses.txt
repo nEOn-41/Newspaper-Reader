@@ -1,0 +1,91 @@
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_1
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_2
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_3
+Response:
+{"retrieval": false, "keywords": []}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_4
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_5
+Response:
+{"retrieval": true, "keywords": [{"keyword": "PMI", "articles": [{"headline": "Drumming up diplomatic support", "summary": "PM Modi with a troupe after arriving in Singapore from Brunei on Wednesday. He met PM Lawrence Wong, ahead of Thursday's bilateral huddle to boost cooperation in advanced manufacturing, maritime connectivity, aviation and healthcare. Earlier in the day, Modi told Brunei Sultan India is for 'development, not expansionism'. Brunei has overlapping maritime claims with China in South China Sea. | P7"}]}]}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_6
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_7
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_8
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_9
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_10
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_11
+Response:
+{"retrieval": true, "keywords": [{"keyword": "PMI", "articles": [{"headline": "PM meets S'pore counterpart over dinner ahead of bilateral talks", "summary": "Indian Prime Minister Narendra Modi met his Singapore counterpart Lawrence Wong over dinner ahead of their formal bilateral meeting on Thursday. The agreements and exchange of agreements on Thursday will benefit the two sides making efforts to boost cooperation in areas like advanced manufacturing, maritime connectivity, aviation skills and healthcare."}, {"headline": "India for development: PM in Brunei", "summary": "India and Brunei agreed to boost cooperation in defence, space, trade and investment, other areas as Prime Minister Narendra Modi held several other security and bilateral talks with Brunei Sultan Hassanal Bolkiah during his two-day visit to the Southeast Asian country. India would be the Sultanate's development partner in implementing its development and a policy of support for freedom of navigation and oversight under international laws like UNCLOS, while also calling for conduct under the code of conduct under discussion."}]}, {"keyword": "Air India", "articles": [{"headline": "India for development: PM in Brunei", "summary": "India and Brunei agreed to boost cooperation in defence, space, trade and investment, other areas as Prime Minister Narendra Modi held several other security and bilateral talks with Brunei Sultan Hassanal Bolkiah during his two-day visit to the Southeast Asian country. India would be the Sultanate's development partner in implementing its development and a policy of support for freedom of navigation and oversight under international laws like UNCLOS, while also calling for conduct under the code of conduct under discussion."}]}]}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_12
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_13
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_14
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_15
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_16
+Response:
+{"retrieval": true, "keywords": [{"keyword": "PMI", "articles": [{"headline": "Zelensky plans wartime govt shake-up, Ukraine foreign min quits", "summary": "Ukrainian President Volodymyr Zelenskyy said on Wednesday that Ukraine needed \"new energy\" as he ordered a major government reshuffle at a crucial juncture in the war against Russia. A total of six ministers, including foreign minister Dmytro Kuleba, submitted their resignations and parliament accepted the resignations of four. They included the resignation of a deputy PM in charge of European integration, the strategic industries minister overseeing Ukraine's arms production and two other ministers. \"We need new energy today, and the strengthening of our state to these steps are related only to different directions,\" Zelenskyy told media during a presser. Lawmakers said that parliament was expected to consider Kuleba's resignation on Thursday. After Zelenskyy's overseas meeting of Ukraine's best-known face was the 43-year-old, Kuleba leader was in the world and lobbying for military and political support and fluent English."}]}]}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_17
+Response:
+{"retrieval": false}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_18
+Response:
+{"retrieval": false, "keywords": []}
+
+--------------------------------------------------------------------------------
+Page ID: ed3ba697-3787-4259-8349-8d83fd26555d_19

@@ -1,0 +1,30 @@
+{
+  "pdfs": {
+    "d0070825-a3e1-4c56-b0f7-d872619b10e6": {
+      "publication_name": "The Times of India",
+      "edition": "Hyderabad",
+      "date": "2024-09-01",
+      "total_pages": 12,
+      "pages": {
+        "1": {},
+        "2": {},
+        "3": {},
+        "4": {},
+        "5": {},
+        "6": {},
+        "7": {},
+        "8": {},
+        "9": {},
+        "10": {},
+        "11": {},
+        "12": {}
+      }
+    },
+    "3aa4bc06-cd3a-48f1-a9ba-fdc4afa2ed4c": {
+      "publication_name": "The Times of India",
+      "edition": "Pune",
+      "date": "2024-09-01",
+      "total_pages": 12
+    }
+  }
+}

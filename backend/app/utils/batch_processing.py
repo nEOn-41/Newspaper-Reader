@@ -1,7 +1,7 @@
 # batch_processing.py
 
 import asyncio
-from ..models.gemini import process_page
+from ..services.page_processor import process_page
 import logging
 
 logger = logging.getLogger(__name__)

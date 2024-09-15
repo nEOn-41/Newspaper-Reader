@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 import asyncio
-from ..models.gemini import process_page
+from ..services.page_processor import process_page
 from ..models.system_prompt import get_system_prompt, get_additional_query
 from ..utils.general_utils import load_metadata, get_pdf_count
 from ..utils.batch_processing import process_batch
