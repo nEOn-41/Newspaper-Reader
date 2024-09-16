@@ -1,8 +1,6 @@
-# query.py
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict, Any
 import asyncio
 from ..services.page_processor import process_page
 from ..models.system_prompt import get_system_prompt, get_additional_query
@@ -19,16 +17,34 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 class QueryRequest(BaseModel):
+    """
+    Pydantic model for query request data.
+    """
     client: str
     keywords: List[str]
     additional_query: str = ""
 
 @router.post("/query")
-async def query_pdf(request: QueryRequest):
+async def query_pdf(request: QueryRequest) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Processes a query request for PDF analysis.
+
+    This function handles the entire process of querying PDFs based on client keywords,
+    processing pages, and returning the results.
+
+    Args:
+        request (QueryRequest): The query request containing client, keywords, and additional query.
+
+    Returns:
+        Dict[str, List[Dict[str, Any]]]: A dictionary containing a list of responses for each processed page.
+
+    Raises:
+        HTTPException: If an error occurs during query processing.
+    """
     client = request.client
     keywords = request.keywords
     additional_query = request.additional_query
-    responses = []
+    responses: List[Dict[str, Any]] = []
     
     logger.info(f"Received query for client: {client}")
     
@@ -50,7 +66,7 @@ async def query_pdf(request: QueryRequest):
             return {"responses": [], "message": "No PDFs found to process"}
         
         batch_size = 15
-        current_batch = []
+        current_batch: List[Dict[str, Any]] = []
         
         for pdf_id, pdf_data in extracted_pages.items():
             total_pages = pdf_data.get("total_pages", 0)

@@ -1,10 +1,29 @@
 import os
 import logging
+from typing import Dict, Any
 from ..config import UPLOAD_DIR
 
 logger = logging.getLogger(__name__)
 
-async def process_page(page, pdf_data, query, client_name):
+async def process_page(page: Dict[str, Any], pdf_data: Dict[str, Any], query: str, client_name: str) -> Dict[str, Any]:
+    """
+    Processes a single page through both LLM layers.
+
+    This function coordinates the processing of a page through the first LLM layer for analysis
+    and the second LLM layer for validation if necessary.
+
+    Args:
+        page (Dict[str, Any]): Dictionary containing page information.
+        pdf_data (Dict[str, Any]): Metadata about the PDF containing the page.
+        query (str): The query to be applied to the page.
+        client_name (str): The name of the client for whom the processing is being performed.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the processing results or error information.
+
+    Raises:
+        Exception: If there's an error during the page processing.
+    """
     try:
         logger.info(f"Processing page {page['id']}")
         # Update this line to construct the image path

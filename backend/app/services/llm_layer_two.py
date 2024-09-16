@@ -1,7 +1,6 @@
-# backend/app/services/llm_layer_two.py
-
 import json
 import logging
+from typing import Dict, Any
 from ..models.gemini_model import model
 from ..models.system_prompt import get_second_system_prompt
 from ..utils.request_pipeline import add_request_to_queue
@@ -9,7 +8,24 @@ from ..utils.general_utils import load_clients
 
 logger = logging.getLogger(__name__)
 
-async def validate_llm_one_response(page_id, llm_one_response, client_name):
+async def validate_llm_one_response(page_id: str, llm_one_response: Dict[str, Any], client_name: str) -> Dict[str, Any]:
+    """
+    Validates the response from the first LLM layer using a second LLM layer.
+
+    This function takes the response from the first LLM layer and uses a second LLM to validate
+    the keyword-article matches based on the client's background.
+
+    Args:
+        page_id (str): The identifier of the page being processed.
+        llm_one_response (Dict[str, Any]): The response from the first LLM layer.
+        client_name (str): The name of the client for whom the validation is being performed.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the validation results or error information.
+
+    Raises:
+        Exception: If there's an error during the validation process.
+    """
     try:
         logger.info(f"LLM Layer Two: Validating response for page {page_id}")
         second_system_prompt = get_second_system_prompt()

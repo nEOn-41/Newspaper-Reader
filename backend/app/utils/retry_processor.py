@@ -1,13 +1,23 @@
-# retry_processor.py
-
 import asyncio
 import json
 import logging
+from typing import List, Dict, Any, Tuple
 from ..services.page_processor import process_page
 
 logger = logging.getLogger(__name__)
 
-def identify_failed_responses(responses):
+def identify_failed_responses(responses: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """
+    Identifies and separates valid and failed responses.
+
+    Args:
+        responses (List[Dict[str, Any]]): A list of response dictionaries to be processed.
+
+    Returns:
+        Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]: A tuple containing two lists:
+            1. Valid responses
+            2. Failed responses
+    """
     failed_responses = []
     valid_responses = []
 
@@ -23,7 +33,18 @@ def identify_failed_responses(responses):
 
     return valid_responses, failed_responses
 
-async def retry_failed_responses(failed_responses, query, client_name):
+async def retry_failed_responses(failed_responses: List[Dict[str, Any]], query: str, client_name: str) -> List[Dict[str, Any]]:
+    """
+    Retries processing for failed responses.
+
+    Args:
+        failed_responses (List[Dict[str, Any]]): A list of failed response dictionaries to be retried.
+        query (str): The query string used for processing.
+        client_name (str): The name of the client for whom the processing is being done.
+
+    Returns:
+        List[Dict[str, Any]]: A list of retried response dictionaries.
+    """
     logger.info(f"Retrying {len(failed_responses)} failed responses")
     retried_responses = []
 

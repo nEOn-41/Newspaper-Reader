@@ -1,15 +1,34 @@
 import json
 import logging
 import os
+from typing import Dict, Any
 from ..models.system_prompt import get_system_prompt
 from ..utils.request_pipeline import add_request_to_queue
 
 logger = logging.getLogger(__name__)
 
-async def analyze_page_with_llm_one(page, pdf_data, query, client_name):
+async def analyze_page_with_llm_one(page: Dict[str, Any], pdf_data: Dict[str, Any], query: str, client_name: str) -> Dict[str, Any]:
+    """
+    Analyzes a single page using the first LLM layer.
+
+    This function processes a page image using the Gemini model, applying the system prompt
+    and the given query to extract relevant information.
+
+    Args:
+        page (Dict[str, Any]): Dictionary containing page information, including the image path.
+        pdf_data (Dict[str, Any]): Metadata about the PDF containing the page.
+        query (str): The query to be applied to the page.
+        client_name (str): The name of the client for whom the analysis is being performed.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the analysis results or error information.
+
+    Raises:
+        Exception: If there's an error during the analysis process.
+    """
     try:
         logger.info(f"LLM Layer One: Processing page {page['id']}")
-        image_path = page['image_path']  # Use the image_path from the page dictionary
+        image_path = page['image_path']
 
         if not os.path.exists(image_path):
             logger.error(f"LLM Layer One: Image file not found: {image_path}")

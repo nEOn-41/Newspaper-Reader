@@ -1,13 +1,12 @@
-# models/system_prompt.py
-
 import json
 from pathlib import Path
+from typing import Tuple, Dict, Any
 
 # Update the path to point to the root directory
 SYSTEM_PROMPT_FILE = Path(__file__).parent.parent.parent / "DATA" / "system_prompt.json"
 SECOND_SYSTEM_PROMPT_FILE = Path(__file__).parent.parent.parent / "DATA" / "second_system_prompt.json"
 
-DEFAULT_SYSTEM_PROMPT = """
+DEFAULT_SYSTEM_PROMPT: str = """
 You are an AI assistant specialized in analyzing newspaper pages. Your task is to examine the given newspaper page image and respond to queries about its content. Follow these guidelines:
 
 1. Analyze the provided newspaper page image carefully.
@@ -39,8 +38,8 @@ You are an AI assistant specialized in analyzing newspaper pages. Your task is t
 Remember to consider the provided metadata (Publication, Edition, Date, Page) when analyzing the content.
 """
 
-DEFAULT_SECOND_SYSTEM_PROMPT = """
-You are responsible for validating keyword-article matches provided by another AI model. Your task is to review the keywords and articles, and check if the keywords are relevant to the articles based on the client’s background and industry.
+DEFAULT_SECOND_SYSTEM_PROMPT: str = """
+You are responsible for validating keyword-article matches provided by another AI model. Your task is to review the keywords and articles, and check if the keywords are relevant to the articles based on the client's background and industry.
 
 **Client Name**: {client_name}  
 **Client Background**: {client_background}
@@ -84,40 +83,83 @@ Return your results in the following format:
 Ensure your response matches the provided JSON structure.
 """
 
-DEFAULT_ADDITIONAL_QUERY = "Please look for the following keywords:"
+DEFAULT_ADDITIONAL_QUERY: str = "Please look for the following keywords:"
 
-def load_system_prompt():
+def load_system_prompt() -> Tuple[str, str]:
+    """
+    Loads the system prompt and additional query from the system_prompt.json file.
+
+    Returns:
+        Tuple[str, str]: A tuple containing the system prompt and additional query.
+    """
     if SYSTEM_PROMPT_FILE.exists():
         with open(SYSTEM_PROMPT_FILE, 'r') as f:
             data = json.load(f)
         return data.get('system_prompt', DEFAULT_SYSTEM_PROMPT), data.get('additional_query', DEFAULT_ADDITIONAL_QUERY)
     return DEFAULT_SYSTEM_PROMPT, DEFAULT_ADDITIONAL_QUERY
 
-def save_system_prompt(system_prompt, additional_query):
+def save_system_prompt(system_prompt: str, additional_query: str) -> None:
+    """
+    Saves the system prompt and additional query to the system_prompt.json file.
+
+    Args:
+        system_prompt (str): The system prompt to be saved.
+        additional_query (str): The additional query to be saved.
+    """
     with open(SYSTEM_PROMPT_FILE, 'w') as f:
         json.dump({
             'system_prompt': system_prompt,
             'additional_query': additional_query
         }, f)
 
-def get_system_prompt():
+def get_system_prompt() -> str:
+    """
+    Returns the current system prompt.
+
+    Returns:
+        str: The current system prompt.
+    """
     return load_system_prompt()[0]
 
-def get_additional_query():
+def get_additional_query() -> str:
+    """
+    Returns the current additional query.
+
+    Returns:
+        str: The current additional query.
+    """
     return load_system_prompt()[1]
 
-def load_second_system_prompt():
+def load_second_system_prompt() -> str:
+    """
+    Loads the second system prompt from the second_system_prompt.json file.
+
+    Returns:
+        str: The second system prompt.
+    """
     if SECOND_SYSTEM_PROMPT_FILE.exists():
         with open(SECOND_SYSTEM_PROMPT_FILE, 'r') as f:
             data = json.load(f)
         return data.get('second_system_prompt', DEFAULT_SECOND_SYSTEM_PROMPT)
     return DEFAULT_SECOND_SYSTEM_PROMPT
 
-def save_second_system_prompt(second_system_prompt):
+def save_second_system_prompt(second_system_prompt: str) -> None:
+    """
+    Saves the second system prompt to the second_system_prompt.json file.
+
+    Args:
+        second_system_prompt (str): The second system prompt to be saved.
+    """
     with open(SECOND_SYSTEM_PROMPT_FILE, 'w') as f:
         json.dump({
             'second_system_prompt': second_system_prompt
         }, f)
 
-def get_second_system_prompt():
+def get_second_system_prompt() -> str:
+    """
+    Returns the current second system prompt.
+
+    Returns:
+        str: The current second system prompt.
+    """
     return load_second_system_prompt()
