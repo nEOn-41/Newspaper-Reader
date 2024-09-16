@@ -5,6 +5,8 @@ import ClientManagement from './components/ClientManagement';
 import SystemPromptEditor from './components/SystemPromptEditor';
 import UploadedPDFs from './components/UploadedPDFs';
 import ResponsesDisplay from './components/ResponsesDisplay';
+import ErrorBoundary from './components/ErrorBoundary';
+import GlobalErrorHandler from './components/GlobalErrorHandler';
 
 function App() {
   const [pdfs, setPdfs] = useState([]);
@@ -13,6 +15,7 @@ function App() {
   const [isQuerying, setIsQuerying] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState('');
   const [additionalQuery, setAdditionalQuery] = useState('');
+  const [globalError, setGlobalError] = useState(null);
 
   useEffect(() => {
     fetchPDFs();
@@ -25,7 +28,7 @@ function App() {
       const response = await axios.get('http://localhost:8000/list-pdfs');
       setPdfs(response.data.pdfs);
     } catch (error) {
-      console.error('Error fetching PDFs:', error);
+      handleError('Error fetching PDFs', error);
     }
   };
 
@@ -34,7 +37,7 @@ function App() {
       const response = await axios.get('http://localhost:8000/clients');
       setClients(response.data.clients);
     } catch (error) {
-      console.error('Error fetching clients:', error);
+      handleError('Error fetching clients', error);
     }
   };
 
@@ -44,32 +47,42 @@ function App() {
       setSystemPrompt(response.data.system_prompt);
       setAdditionalQuery(response.data.additional_query);
     } catch (error) {
-      console.error('Error fetching system prompt:', error);
+      handleError('Error fetching system prompt', error);
     }
   };
 
+  const handleError = (message, error) => {
+    console.error(message, error);
+    setGlobalError(error.response?.data?.error || error.message || 'An unexpected error occurred');
+  };
+
   return (
-    <div className="App">
-      <h1>Newspaper Query System</h1>
-      <PDFUpload fetchPDFs={fetchPDFs} />
-      <h2>Client Management</h2>
-      <ClientManagement
-        clients={clients}
-        fetchClients={fetchClients}
-        setResponses={setResponses}
-        setIsQuerying={setIsQuerying}
-        isQuerying={isQuerying}
-        additionalQuery={additionalQuery}
-      />
-      <UploadedPDFs pdfs={pdfs} fetchPDFs={fetchPDFs} />
-      <ResponsesDisplay responses={responses} />
-      <SystemPromptEditor
-        systemPrompt={systemPrompt}
-        setSystemPrompt={setSystemPrompt}
-        additionalQuery={additionalQuery}
-        setAdditionalQuery={setAdditionalQuery}
-      />
-    </div>
+    <ErrorBoundary>
+      <div className="App">
+        <h1>Newspaper Query System</h1>
+        <GlobalErrorHandler error={globalError} onClear={() => setGlobalError(null)} />
+        <PDFUpload fetchPDFs={fetchPDFs} handleError={handleError} />
+        <h2>Client Management</h2>
+        <ClientManagement
+          clients={clients}
+          fetchClients={fetchClients}
+          setResponses={setResponses}
+          setIsQuerying={setIsQuerying}
+          isQuerying={isQuerying}
+          additionalQuery={additionalQuery}
+          handleError={handleError}
+        />
+        <UploadedPDFs pdfs={pdfs} fetchPDFs={fetchPDFs} handleError={handleError} />
+        <ResponsesDisplay responses={responses} />
+        <SystemPromptEditor
+          systemPrompt={systemPrompt}
+          setSystemPrompt={setSystemPrompt}
+          additionalQuery={additionalQuery}
+          setAdditionalQuery={setAdditionalQuery}
+          handleError={handleError}
+        />
+      </div>
+    </ErrorBoundary>
   );
 }
 

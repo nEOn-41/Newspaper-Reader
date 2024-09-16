@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import asyncio
@@ -8,6 +8,7 @@ from ..utils.general_utils import load_metadata, get_pdf_count
 from ..utils.batch_processing import process_batch
 from ..utils.retry_processor import identify_failed_responses, retry_failed_responses
 from ..config import UPLOAD_DIR, METADATA_FILE
+from ..utils.custom_exceptions import QueryProcessingError, RateLimitExceededError
 import logging
 import os
 import json
@@ -39,7 +40,8 @@ async def query_pdf(request: QueryRequest) -> Dict[str, List[Dict[str, Any]]]:
         Dict[str, List[Dict[str, Any]]]: A dictionary containing a list of responses for each processed page.
 
     Raises:
-        HTTPException: If an error occurs during query processing.
+        QueryProcessingError: If an error occurs during query processing.
+        RateLimitExceededError: If the rate limit is exceeded.
     """
     client = request.client
     keywords = request.keywords
@@ -113,6 +115,9 @@ async def query_pdf(request: QueryRequest) -> Dict[str, List[Dict[str, Any]]]:
             for r in responses if r.get("page_id")
         ]}
 
+    except RateLimitExceededError:
+        logger.error("Rate limit exceeded during query processing")
+        raise
     except Exception as e:
         logger.error(f"An error occurred during query processing: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"An error occurred during query processing: {str(e)}")
+        raise QueryProcessingError(f"An error occurred during query processing: {str(e)}")

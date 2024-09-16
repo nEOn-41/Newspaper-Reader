@@ -1,13 +1,23 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from .routes import upload, query, delete, clients, pdfs
 from .utils.general_utils import load_metadata
 from .config import LOGGING_CONFIG
-import logging
-from logging.config import dictConfig
+from .utils.custom_exceptions import (
+    PDFUploadError,
+    PDFProcessingError,
+    ClientManagementError,
+    QueryProcessingError,
+    ResourceNotFoundError,
+    InvalidJSONError,
+    RateLimitExceededError
+)
 from .models.system_prompt import load_system_prompt, save_system_prompt, get_system_prompt, get_additional_query
 import asyncio
 from .utils.request_pipeline import request_worker
+import logging
+from logging.config import dictConfig
 from typing import Dict, Any
 
 # Configure logging
@@ -31,6 +41,34 @@ app.include_router(query.router)
 app.include_router(delete.router)
 app.include_router(clients.router)
 app.include_router(pdfs.router)
+
+@app.exception_handler(PDFUploadError)
+@app.exception_handler(PDFProcessingError)
+@app.exception_handler(ClientManagementError)
+@app.exception_handler(QueryProcessingError)
+@app.exception_handler(ResourceNotFoundError)
+@app.exception_handler(InvalidJSONError)
+@app.exception_handler(RateLimitExceededError)
+async def custom_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """
+    Global exception handler for custom exceptions.
+    """
+    logger.error(f"Custom exception occurred: {exc}")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.detail},
+    )
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """
+    Global exception handler for unhandled exceptions.
+    """
+    logger.error(f"Unhandled exception occurred: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"error": "An unexpected error occurred. Please try again later."},
+    )
 
 @app.on_event("startup")
 async def startup_event() -> None:

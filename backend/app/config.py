@@ -1,5 +1,3 @@
-# config.py
-
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -36,20 +34,32 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": False,
     "formatters": {
         "standard": {
-            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+            "format": "%(asctime)s [%(levelname)s] %(name)s:%(lineno)d: %(message)s"
+        },
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": "%(asctime)s %(levelname)s %(name)s %(lineno)d %(message)s"
         },
     },
     "handlers": {
-        "default": {
+        "console": {
             "level": LOG_LEVEL,
             "formatter": "standard",
             "class": "logging.StreamHandler",
             "stream": "ext://sys.stdout",
         },
+        "file": {
+            "level": LOG_LEVEL,
+            "formatter": "json",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(DATA_DIR / "app.log"),  # Convert Path to string
+            "maxBytes": 10485760,  # 10MB
+            "backupCount": 5,
+        },
     },
     "loggers": {
         "": {  # root logger
-            "handlers": ["default"],
+            "handlers": ["console", "file"],
             "level": LOG_LEVEL,
             "propagate": True
         }

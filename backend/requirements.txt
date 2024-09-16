@@ -6,3 +6,4 @@ python-dotenv
 pdf2image
 PyMuPDF
 Pillow
+python-json-logger

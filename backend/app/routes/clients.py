@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import json
 import logging
 from ..config import CLIENT_DB_FILE
 from ..utils.general_utils import load_clients, save_metadata
+from ..utils.custom_exceptions import ClientManagementError, ResourceNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +26,13 @@ def save_clients(clients: Dict[str, Any]) -> None:
     Args:
         clients (Dict[str, Any]): Dictionary containing client data.
     """
-    with open(CLIENT_DB_FILE, 'w') as f:
-        json.dump(clients, f)
-    logger.info(f"Saved {len(clients)} clients to {CLIENT_DB_FILE}")
+    try:
+        with open(CLIENT_DB_FILE, 'w') as f:
+            json.dump(clients, f)
+        logger.info(f"Saved {len(clients)} clients to {CLIENT_DB_FILE}")
+    except Exception as e:
+        logger.error(f"Failed to save clients: {str(e)}")
+        raise ClientManagementError(f"Failed to save clients: {str(e)}")
 
 @router.post("/clients")
 async def add_client(client: Client) -> Dict[str, str]:
@@ -41,19 +46,23 @@ async def add_client(client: Client) -> Dict[str, str]:
         Dict[str, str]: A dictionary containing a success message.
 
     Raises:
-        HTTPException: If the client already exists.
+        ClientManagementError: If the client already exists or if there's an error adding the client.
     """
     clients = load_clients()
     
     if client.name in clients:
-        raise HTTPException(status_code=400, detail="Client already exists")
+        raise ClientManagementError(f"Client '{client.name}' already exists")
     
-    clients[client.name] = {
-        "keywords": client.keywords,
-        "details": client.details
-    }
-    save_clients(clients)
-    return {"message": f"Client {client.name} added successfully"}
+    try:
+        clients[client.name] = {
+            "keywords": client.keywords,
+            "details": client.details
+        }
+        save_clients(clients)
+        return {"message": f"Client {client.name} added successfully"}
+    except Exception as e:
+        logger.error(f"Failed to add client {client.name}: {str(e)}")
+        raise ClientManagementError(f"Failed to add client {client.name}: {str(e)}")
 
 @router.get("/clients")
 async def get_clients() -> Dict[str, List[Dict[str, Any]]]:
@@ -62,9 +71,16 @@ async def get_clients() -> Dict[str, List[Dict[str, Any]]]:
 
     Returns:
         Dict[str, List[Dict[str, Any]]]: A dictionary containing a list of all clients.
+
+    Raises:
+        ClientManagementError: If there's an error retrieving clients.
     """
-    clients = load_clients()
-    return {"clients": [{"name": name, **data} for name, data in clients.items()]}
+    try:
+        clients = load_clients()
+        return {"clients": [{"name": name, **data} for name, data in clients.items()]}
+    except Exception as e:
+        logger.error(f"Failed to retrieve clients: {str(e)}")
+        raise ClientManagementError(f"Failed to retrieve clients: {str(e)}")
 
 @router.put("/clients/{client_name}")
 async def update_client(client_name: str, client: Client) -> Dict[str, str]:
@@ -79,18 +95,23 @@ async def update_client(client_name: str, client: Client) -> Dict[str, str]:
         Dict[str, str]: A dictionary containing a success message.
 
     Raises:
-        HTTPException: If the client is not found.
+        ResourceNotFoundError: If the client is not found.
+        ClientManagementError: If there's an error updating the client.
     """
     clients = load_clients()
     if client_name not in clients:
-        raise HTTPException(status_code=404, detail="Client not found")
+        raise ResourceNotFoundError("Client", client_name)
     
-    clients[client_name] = {
-        "keywords": client.keywords,
-        "details": client.details
-    }
-    save_clients(clients)
-    return {"message": f"Client {client_name} updated successfully"}
+    try:
+        clients[client_name] = {
+            "keywords": client.keywords,
+            "details": client.details
+        }
+        save_clients(clients)
+        return {"message": f"Client {client_name} updated successfully"}
+    except Exception as e:
+        logger.error(f"Failed to update client {client_name}: {str(e)}")
+        raise ClientManagementError(f"Failed to update client {client_name}: {str(e)}")
 
 @router.delete("/clients/{client_name}")
 async def delete_client(client_name: str) -> Dict[str, str]:
@@ -104,12 +125,17 @@ async def delete_client(client_name: str) -> Dict[str, str]:
         Dict[str, str]: A dictionary containing a success message.
 
     Raises:
-        HTTPException: If the client is not found.
+        ResourceNotFoundError: If the client is not found.
+        ClientManagementError: If there's an error deleting the client.
     """
     clients = load_clients()
     if client_name not in clients:
-        raise HTTPException(status_code=404, detail="Client not found")
+        raise ResourceNotFoundError("Client", client_name)
     
-    del clients[client_name]
-    save_clients(clients)
-    return {"message": f"Client {client_name} deleted successfully"}
+    try:
+        del clients[client_name]
+        save_clients(clients)
+        return {"message": f"Client {client_name} deleted successfully"}
+    except Exception as e:
+        logger.error(f"Failed to delete client {client_name}: {str(e)}")
+        raise ClientManagementError(f"Failed to delete client {client_name}: {str(e)}")
