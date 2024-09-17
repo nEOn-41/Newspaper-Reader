@@ -1,13 +1,18 @@
 import asyncio
 import logging
 from typing import List, Dict, Any
-from ..config import BATCH_SIZE, RATE_LIMIT_INTERVAL
+from collections import deque
+from time import time
+from ..config import RATE_LIMIT_INTERVAL, BATCH_SIZE
 from ..models.gemini_model import model
 
 logger = logging.getLogger(__name__)
 
 # Global request queue
 request_queue: asyncio.Queue = asyncio.Queue()
+
+# Sliding window buffer
+request_buffer: deque = deque()
 
 async def request_worker() -> None:
     """
@@ -16,42 +21,50 @@ async def request_worker() -> None:
     This function runs indefinitely, processing batches of requests and enforcing rate limits.
     """
     while True:
-        batch: List[Dict[str, Any]] = []
-        for _ in range(BATCH_SIZE):
-            try:
-                task = await asyncio.wait_for(request_queue.get(), timeout=1)
-                batch.append(task)
-            except asyncio.TimeoutError:
-                break
-        if batch:
-            await process_batch(batch)
-            logger.info(f"Processed batch of {len(batch)} requests. Waiting for {RATE_LIMIT_INTERVAL} seconds.")
-            await asyncio.sleep(RATE_LIMIT_INTERVAL)
-        else:
-            await asyncio.sleep(1)  # Avoid busy waiting
+        current_time = time()
+        
+        # Remove expired requests from the buffer
+        while request_buffer and current_time - request_buffer[0] >= RATE_LIMIT_INTERVAL:
+            request_buffer.popleft()
+        
+        # Process as many requests as possible
+        available_slots = BATCH_SIZE - len(request_buffer)
+        if available_slots > 0:
+            batch = []
+            for _ in range(available_slots):
+                try:
+                    task = request_queue.get_nowait()
+                    batch.append(task)
+                except asyncio.QueueEmpty:
+                    break
+            
+            if batch:
+                await process_batch(batch)
+                current_time = time()
+                request_buffer.extend([current_time] * len(batch))
+        
+        # Wait a short time before checking again
+        await asyncio.sleep(0.1)
 
 async def process_batch(batch: List[Dict[str, Any]]) -> None:
     """
-    Processes a batch of requests concurrently.
+    Processes a batch of requests.
 
     Args:
-        batch (List[Dict[str, Any]]): A list of request tasks to be processed.
+        batch (List[Dict[str, Any]]): A list of tasks to be processed.
     """
-    tasks = []
-    for task in batch:
-        content = task['content']
-        future = task['future']
-        tasks.append(asyncio.create_task(send_request_to_gemini_api(content, future)))
+    tasks = [process_request(task) for task in batch]
     await asyncio.gather(*tasks)
 
-async def send_request_to_gemini_api(content: List[Any], future: asyncio.Future) -> None:
+async def process_request(task: Dict[str, Any]) -> None:
     """
-    Sends a request to the Gemini API and sets the result in the provided future.
+    Processes a single request.
 
     Args:
-        content (List[Any]): The content to be sent to the Gemini API.
-        future (asyncio.Future): A future object to store the API response.
+        task (Dict[str, Any]): A dictionary containing the request content and future.
     """
+    content = task['content']
+    future = task['future']
     try:
         response = await model.generate_content_async(content)
         future.set_result(response)

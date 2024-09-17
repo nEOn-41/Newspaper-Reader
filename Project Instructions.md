@@ -42,11 +42,12 @@ We are building an automated media monitoring tool designed to help clients trac
    - If an invalid JSON structure is detected, the system retries calling the Gemini API for only those responses that returned invalid JSON, ensuring valid results.
 
 7. **Batching and Rate Limit Handling**:
-   - **(Yet to be implemented)**: A central **pipeline** will be created to process any request that needs to be sent to the Gemini API, including queries and retries for invalid JSON. This pipeline will ensure compliance with the free-tier rate limit of **15 requests per minute**.
-   - The system will track every request sent to the Gemini API:
-     - Only **15 requests** can be sent at a time.
-     - After sending the 15th request, the system will **pause for 60 seconds** before processing the next batch.
-     - Additional requests will be added to a **queue** and processed after the cooldown period.
+   - A central **pipeline** processes all requests sent to the Gemini API, including queries and retries for invalid JSON. This pipeline ensures compliance with the free-tier rate limit of **15 requests per minute**.
+   - The system uses a sliding window approach to track requests:
+     - A buffer keeps track of the timestamps of requests sent in the last 60 seconds.
+     - New requests are processed as soon as slots become available in the buffer.
+     - The system can send up to 15 requests at once if the buffer allows.
+   - Additional requests are added to a **queue** and processed as soon as slots become available in the sliding window.
 
 8. **Multi-modal Processing**:
    - The system leverages the multi-modal capability of the **Gemini 1.5 Flash model** to process images of newspaper pages, enabling it to "see" and "read" the content (e.g., tables, images, text) on each page.
@@ -63,7 +64,7 @@ We are building an automated media monitoring tool designed to help clients trac
    - **Page Extraction & Metadata**: Implement logic to extract individual pages, convert them into images, and associate each page with its metadata and unique ID.
    - **Query API**: Develop an API that accepts user queries based on clients and their keywords, sends individual page images with their metadata to the Gemini API, and returns a relevant response.
    - **Invalid JSON Handling**: Implement retry mechanisms for invalid JSON responses from the Gemini API.
-   - **Batching & Rate Limiting**: **(Yet to be implemented)**: A centralized pipeline will handle all requests sent to Gemini API, enforcing the 15 requests-per-minute limit, queuing additional requests, and processing them after the cooldown.
+   - **Batching & Rate Limiting**: A centralized pipeline handles all requests sent to Gemini API, implementing a sliding window approach to enforce the 15 requests-per-minute limit. It queues additional requests and processes them as soon as slots become available.
 
 2. **Frontend**:
    - A simple UI allowing users to:
@@ -75,7 +76,7 @@ We are building an automated media monitoring tool designed to help clients trac
 
 3. **Model Integration**:
    - **First LLM Layer (Gemini 1.5 Flash)**: Integrate the Gemini 1.5 Flash model to handle multi-modal document processing (images of newspaper pages). Use the editable system prompt and additional query before submitting the keywords.
-   - **Second LLM Layer**: **(Yet to be implemented)**: Integrate the second LLM layer to validate keyword-article matches based on the responses from the first LLM layer.
+   - **Second LLM Layer**: Integrate the second LLM layer to validate keyword-article matches based on the responses from the first LLM layer.
 
 ### **Initial Testing**:
 For initial testing:
