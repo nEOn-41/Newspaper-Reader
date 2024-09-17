@@ -8,6 +8,7 @@ from ..utils.batch_processing import process_batch
 from ..utils.retry_processor import identify_failed_responses, retry_failed_responses
 from ..utils.custom_exceptions import QueryProcessingError, RateLimitExceededError
 import logging
+from ..services.page_processor import process_page
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,6 @@ async def query_pdf(request: QueryRequest) -> Dict[str, List[Dict[str, Any]]]:
 
     Raises:
         QueryProcessingError: If an error occurs during query processing.
-        RateLimitExceededError: If the rate limit is exceeded.
     """
     client = request.client
     keywords = request.keywords
@@ -63,57 +63,37 @@ async def query_pdf(request: QueryRequest) -> Dict[str, List[Dict[str, Any]]]:
             logger.warning("No PDFs found in metadata. Check if PDFs are being properly saved.")
             return {"responses": [], "message": "No PDFs found to process"}
         
-        batch_size = 15
-        current_batch: List[Dict[str, Any]] = []
-        
+        tasks = []
         for pdf_id, pdf_data in extracted_pages.items():
             total_pages = pdf_data.get("total_pages", 0)
             logger.info(f"Processing PDF {pdf_id} with {total_pages} pages")
             
             for page_num in range(total_pages):
-                current_batch.append({
+                page = {
                     "id": f"{pdf_id}_{page_num+1}",
                     "number": page_num+1,
                     "pdf_data": pdf_data
-                })
-                
-                if len(current_batch) == batch_size:
-                    batch_responses = await process_batch(current_batch, full_query, client)
-                    valid_responses, failed_responses = identify_failed_responses(batch_responses)
-                    responses.extend(valid_responses)
-                    
-                    if failed_responses:
-                        retried_responses = await retry_failed_responses(failed_responses, full_query, client)
-                        responses.extend(retried_responses)
-                    
-                    current_batch = []
-                    
-                    logger.info("Rate limit reached. Waiting for 60 seconds...")
-                    await asyncio.sleep(60)
+                }
+                tasks.append(process_page(page, pdf_data, full_query, client))
         
-        # Process any remaining pages in the last batch
-        if current_batch:
-            batch_responses = await process_batch(current_batch, full_query, client)
-            valid_responses, failed_responses = identify_failed_responses(batch_responses)
-            responses.extend(valid_responses)
-            
-            if failed_responses:
-                retried_responses = await retry_failed_responses(failed_responses, full_query, client)
-                responses.extend(retried_responses)
+        responses = await asyncio.gather(*tasks)
         
-        logger.info(f"Query processing complete. Total responses: {len(responses)}")
+        valid_responses, failed_responses = identify_failed_responses(responses)
+        
+        if failed_responses:
+            retried_responses = await retry_failed_responses(failed_responses, full_query, client)
+            valid_responses.extend(retried_responses)
+        
+        logger.info(f"Query processing complete. Total responses: {len(valid_responses)}")
         return {"responses": [
             {
                 "page_id": r.get("page_id"),
                 "first_response": r.get("first_response"),
                 "second_response": r.get("second_response")
             } 
-            for r in responses if r.get("page_id")
+            for r in valid_responses if r.get("page_id")
         ]}
 
-    except RateLimitExceededError:
-        logger.error("Rate limit exceeded during query processing")
-        raise
     except Exception as e:
         logger.error(f"An error occurred during query processing: {str(e)}")
         raise QueryProcessingError(f"An error occurred during query processing: {str(e)}")
