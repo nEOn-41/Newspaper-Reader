@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Tuple, Dict, Any
+from typing import Tuple
 
 # Update the path to point to the root directory
 SYSTEM_PROMPT_FILE = Path(__file__).parent.parent.parent / "DATA" / "system_prompt.json"

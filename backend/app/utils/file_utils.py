@@ -1,6 +1,5 @@
 import os
 from PIL import Image
-import io
 import logging
 from typing import Union
 
@@ -44,24 +43,4 @@ def load_image(path: Union[str, os.PathLike]) -> Image.Image:
             return img.convert('RGB')
     except Exception as e:
         logger.error(f"Failed to load image from {path}: {str(e)}")
-        raise e
-
-def read_file_bytes(path: Union[str, os.PathLike]) -> bytes:
-    """
-    Reads a file and returns its content as bytes.
-
-    Args:
-        path (Union[str, os.PathLike]): The path of the file to be read.
-
-    Returns:
-        bytes: The content of the file as bytes.
-
-    Raises:
-        Exception: If there's an error reading the file.
-    """
-    try:
-        with open(path, 'rb') as f:
-            return f.read()
-    except Exception as e:
-        logger.error(f"Failed to read file from {path}: {str(e)}")
         raise e

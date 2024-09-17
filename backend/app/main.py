@@ -13,12 +13,12 @@ from .utils.custom_exceptions import (
     InvalidJSONError,
     RateLimitExceededError
 )
-from .models.system_prompt import load_system_prompt, save_system_prompt, get_system_prompt, get_additional_query
+from .models.system_prompt import save_system_prompt, get_system_prompt, get_additional_query
 import asyncio
 from .utils.request_pipeline import request_worker
 import logging
 from logging.config import dictConfig
-from typing import Dict, Any
+from typing import Dict
 
 # Configure logging
 dictConfig(LOGGING_CONFIG)

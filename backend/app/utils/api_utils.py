@@ -1,5 +1,5 @@
 from fastapi.responses import JSONResponse
-from typing import Any, Dict
+from typing import Any
 
 def success_response(data: Any, message: str = "Operation successful") -> JSONResponse:
     """

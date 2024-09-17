@@ -2,16 +2,12 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import asyncio
-from ..services.page_processor import process_page
 from ..models.system_prompt import get_system_prompt, get_additional_query
 from ..utils.general_utils import load_metadata, get_pdf_count
 from ..utils.batch_processing import process_batch
 from ..utils.retry_processor import identify_failed_responses, retry_failed_responses
-from ..config import UPLOAD_DIR, METADATA_FILE
 from ..utils.custom_exceptions import QueryProcessingError, RateLimitExceededError
 import logging
-import os
-import json
 
 logger = logging.getLogger(__name__)
 

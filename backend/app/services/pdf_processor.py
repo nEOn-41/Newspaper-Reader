@@ -4,7 +4,6 @@ import fitz  # PyMuPDF
 from PIL import Image
 from pathlib import Path
 import logging
-from typing import Dict, Any
 from ..utils.file_utils import save_image
 from ..utils.general_utils import load_metadata, save_metadata
 from ..config import UPLOAD_DIR, METADATA_FILE, PDF_EXTRACTION_ZOOM

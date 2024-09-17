@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 import json
 import logging
 from ..config import CLIENT_DB_FILE
-from ..utils.general_utils import load_clients, save_metadata
+from ..utils.general_utils import load_clients
 from ..utils.custom_exceptions import ClientManagementError, ResourceNotFoundError
 
 logger = logging.getLogger(__name__)
