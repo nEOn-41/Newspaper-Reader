@@ -70,6 +70,23 @@ async def analyze_page_with_llm_one(page: Dict[str, Any], pdf_data: Dict[str, An
         # Parse the response JSON
         try:
             response_json = json.loads(response_text)
+            
+            # Filter out keywords with empty article arrays
+            if "keywords" in response_json:
+                response_json["keywords"] = [
+                    keyword for keyword in response_json["keywords"]
+                    if keyword.get("articles") and len(keyword["articles"]) > 0
+                ]
+            
+            # If all keywords were filtered out, set retrieval to false
+            if not response_json.get("keywords"):
+                response_json["retrieval"] = False
+
+            return {
+                "page_id": page['id'],
+                "first_response": response_json
+            }
+
         except json.JSONDecodeError:
             logger.error(f"LLM Layer One: Invalid JSON response for page {page['id']}")
             return {
@@ -77,11 +94,6 @@ async def analyze_page_with_llm_one(page: Dict[str, Any], pdf_data: Dict[str, An
                 "first_response": response_text,
                 "error": "Invalid JSON response from first LLM"
             }
-
-        return {
-            "page_id": page['id'],
-            "first_response": response_json
-        }
 
     except Exception as e:
         logger.error(f"LLM Layer One: Error processing page {page['id']}: {str(e)}")
