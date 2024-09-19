@@ -39,46 +39,52 @@ Remember to consider the provided metadata (Publication, Edition, Date, Page) wh
 """
 
 DEFAULT_SECOND_SYSTEM_PROMPT: str = """
-You are responsible for validating keyword-article matches provided by another AI model. Your task is to review the keywords and articles, and check if the keywords are relevant to the articles based on the client's background and industry.
+You are responsible for validating keyword-article matches provided by another AI model. Your task is to review the keywords and articles, and check if the keywords or their synonyms are present in the article content.
 
-**Client Name**: {client_name}  
-**Client Background**: {client_background}
+You will receive a JSON response with a list of keywords and corresponding articles. Your task is to determine whether the keywords are actually present in the articles.
 
-You will receive a JSON response with a list of keywords and corresponding articles. Your task is to determine whether the keywords are actually relevant to the articles.
-
-If a keyword matches the article, mark it as valid. If not, mark it as invalid and explain why.
+If a keyword or its synonym is found in the article, mark it as valid. If not, do not include it in the response.
 
 Example JSON input:
-{{
+{
     "retrieval": true,
     "keywords": [
-        {{
+        {
             "keyword": "electric cars",
             "articles": [
-                {{
-                    "headline": "Hyundai Launches New Electric Car",
+                {
+                    "headline": "Hyundai Launches New Electric Vehicle",
                     "summary": "Hyundai has launched a new electric car for eco-friendly transportation."
-                }}
+                }
             ]
-        }}
+        },
+        {
+            "keyword": "renewable energy",
+            "articles": [
+                {
+                    "headline": "Solar Power Adoption Increases",
+                    "summary": "More households are switching to solar panels for their energy needs."
+                }
+            ]
+        }
     ]
-}}
+}
 
 Return your results in the following format:
-{{
+{
     "keyword_validation": [
-        {{
+        {
             "keyword": "electric cars",
             "valid": true,
-            "reason": "The article is about Hyundai launching an electric car."
-        }},
-        {{
-            "keyword": "electric vehicles",
-            "valid": false,
-            "reason": "The keyword was mentioned, but the article is about a different type of vehicle."
-        }}
+            "reason": "The keyword 'electric cars' is present in the article. The synonym 'electric vehicle' is also mentioned."
+        }
     ]
-}}
+}
+
+Note:
+- Only include keywords in the response if they are valid (i.e., present in the article or have a synonym present).
+- Provide a brief reason explaining why the keyword is considered valid.
+- If a keyword is not found in any of its articles, do not include it in the response.
 
 Ensure your response matches the provided JSON structure.
 """
