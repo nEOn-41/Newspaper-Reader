@@ -47,20 +47,19 @@ class PDFProcessor:
             Exception: If there's an error during page extraction.
         """
         try:
-            doc = fitz.open(stream=pdf_content, filetype="pdf")
-            pdf_dir = Path(self.upload_dir) / pdf_id
-            os.makedirs(pdf_dir, exist_ok=True)
+            with fitz.open(stream=pdf_content, filetype="pdf") as doc:
+                pdf_dir = Path(self.upload_dir) / pdf_id
+                os.makedirs(pdf_dir, exist_ok=True)
 
-            for page_num in range(len(doc)):
-                page = doc.load_page(page_num)
-                mat = fitz.Matrix(PDF_EXTRACTION_ZOOM, PDF_EXTRACTION_ZOOM)
-                pix = page.get_pixmap(matrix=mat, alpha=False)
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                image_path = pdf_dir / f"{page_num + 1}.png"
-                save_image(img, image_path)
-            doc.close()
-            logger.info(f"Extracted {len(doc)} pages from PDF {pdf_id}")
-            return len(doc)
+                for page_num in range(len(doc)):
+                    page = doc.load_page(page_num)
+                    mat = fitz.Matrix(PDF_EXTRACTION_ZOOM, PDF_EXTRACTION_ZOOM)
+                    pix = page.get_pixmap(matrix=mat, alpha=False)
+                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                    image_path = pdf_dir / f"{page_num + 1}.png"
+                    save_image(img, image_path)
+                logger.info(f"Extracted {len(doc)} pages from PDF {pdf_id}")
+                return len(doc)
         except Exception as e:
             logger.error(f"Failed to extract pages for PDF {pdf_id}: {str(e)}")
             raise e
