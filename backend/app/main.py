@@ -16,6 +16,7 @@ from .utils.custom_exceptions import (
 from .models.system_prompt import save_system_prompt, get_system_prompt, get_additional_query
 import asyncio
 from .utils.request_pipeline import request_worker
+from .utils.request_pipeline_pro import request_worker_pro
 import logging
 from logging.config import dictConfig
 from typing import Dict
@@ -74,15 +75,13 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 async def startup_event() -> None:
     """
     Startup event handler for the FastAPI application.
-    
-    This function is called when the application starts. It loads existing metadata,
-    logs the application start, and initiates the request worker.
     """
     # Load existing metadata on startup
     load_metadata()
     logger.info("Application started")
-    # Start the request worker
-    asyncio.create_task(request_worker())
+    # Start the request workers
+    asyncio.create_task(request_worker())       # For gemini-1.5-flash
+    asyncio.create_task(request_worker_pro())   # For gemini-1.5-pro-latest
 
 @app.get("/system-prompt")
 async def get_system_prompt_route() -> Dict[str, str]:

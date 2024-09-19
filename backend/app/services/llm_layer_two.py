@@ -1,8 +1,10 @@
+# backend/app/services/llm_layer_two.py
+
 import json
 import logging
 from typing import Dict, Any
 from ..models.system_prompt import get_second_system_prompt
-from ..utils.request_pipeline import add_request_to_queue
+from ..utils.request_pipeline_pro import add_request_to_queue_pro
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +19,8 @@ async def validate_llm_one_response(page_id: str, llm_one_response: Dict[str, An
             f"JSON Input:\n{json.dumps(llm_one_response)}"
         ]
 
-        # Add the request to the queue and await the result
-        future = add_request_to_queue(second_content)
+        # Add the request to the pro queue and await the result
+        future = add_request_to_queue_pro(second_content)
         second_response = await future
 
         second_response_text = second_response.text

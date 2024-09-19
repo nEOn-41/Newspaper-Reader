@@ -1,3 +1,5 @@
+# backend/app/config.py
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -30,7 +32,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # Logging configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOGGING_CONFIG = {
-    "version": 1,
+    "version": 1,  # This key is mandatory
     "disable_existing_loggers": False,
     "formatters": {
         "standard": {
@@ -69,6 +71,10 @@ LOGGING_CONFIG = {
 # PDF extraction zoom level
 PDF_EXTRACTION_ZOOM = 2.0
 
-# Rate limiting configurations
-BATCH_SIZE = 15  # Maximum number of requests per batch
-RATE_LIMIT_INTERVAL = 60  # Cooldown period in seconds after each batch
+# Rate limiting configurations for the first model
+BATCH_SIZE = 15  # For gemini-1.5-flash
+RATE_LIMIT_INTERVAL = 60  # In seconds
+
+# Rate limiting configurations for the second model
+BATCH_SIZE_PRO = 2  # For gemini-1.5-pro-latest
+RATE_LIMIT_INTERVAL_PRO = 60  # In seconds

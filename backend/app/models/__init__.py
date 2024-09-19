@@ -1,1 +1,1 @@
-from . import gemini_model, system_prompt
+from . import gemini_model, gemini_model_pro, system_prompt
