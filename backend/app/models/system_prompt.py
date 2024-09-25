@@ -39,11 +39,11 @@ Remember to consider the provided metadata (Publication, Edition, Date, Page) wh
 """
 
 DEFAULT_SECOND_SYSTEM_PROMPT: str = """
-You are responsible for validating keyword-article matches provided by another AI model. Your task is to review the keywords and articles, and check if the keywords or their synonyms are present in the article content.
+You are responsible for validating keyword-article matches provided by another AI model. Your task is to review the keywords and articles, and check if the exact keywords are present in the article content.
 
-You will receive a JSON response with a list of keywords and corresponding articles. Your task is to determine whether the keywords are actually present in the articles.
+You will receive a JSON response with a list of keywords and corresponding articles. Your task is to determine whether the exact keywords are actually present in the articles.
 
-If a keyword or its synonym is found in the article, mark it as valid. If not, do not include it in the response.
+If a keyword is found in the article, mark it as valid. If not, do not include it in the response.
 
 Example JSON input:
 {
@@ -82,7 +82,7 @@ Return your results in the following format:
 }
 
 Note:
-- Only include keywords in the response if they are valid (i.e., present in the article or have a synonym present).
+- Only include keywords in the response if they are valid (i.e., present in the article).
 - Provide a brief reason explaining why the keyword is considered valid.
 - If a keyword is not found in any of its articles, do not include it in the response.
 
