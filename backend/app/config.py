@@ -78,3 +78,6 @@ RATE_LIMIT_INTERVAL = 60  # In seconds
 # Rate limiting configurations for the second model
 BATCH_SIZE_PRO = 2  # For gemini-1.5-pro-latest
 RATE_LIMIT_INTERVAL_PRO = 60  # In seconds
+
+# Database URL
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/newspaper_reader")

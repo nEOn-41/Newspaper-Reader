@@ -1,10 +1,19 @@
 import json
 from pathlib import Path
 from typing import Tuple
+from sqlalchemy import Column, Integer, String
+from .base import Base
 
 # Update the path to point to the root directory
 SYSTEM_PROMPT_FILE = Path(__file__).parent.parent.parent / "DATA" / "system_prompt.json"
 SECOND_SYSTEM_PROMPT_FILE = Path(__file__).parent.parent.parent / "DATA" / "second_system_prompt.json"
+
+class SystemPrompt(Base):
+    __tablename__ = "system_prompts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    prompt = Column(String)
+    additional_query = Column(String)
 
 DEFAULT_SYSTEM_PROMPT: str = """
 You are an AI assistant specialized in analyzing newspaper pages. Your task is to examine the given newspaper page image and respond to queries about its content. Follow these guidelines:
