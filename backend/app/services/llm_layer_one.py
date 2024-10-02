@@ -48,9 +48,9 @@ async def analyze_page_with_llm_one(page: Dict[str, Any], pdf_data: Dict[str, An
             },
             f"""
             {system_prompt}
-            Publication: {pdf_data['publication_name']}
-            Edition: {pdf_data['edition']}
-            Date: {pdf_data['date']}
+            Publication: {pdf_data.get('publication_name', 'Unknown')}
+            Edition: {pdf_data.get('edition', 'Unknown')}
+            Date: {pdf_data.get('date', 'Unknown')}
             Page: {page['number']}
             
             Query: {query}
@@ -64,7 +64,15 @@ async def analyze_page_with_llm_one(page: Dict[str, Any], pdf_data: Dict[str, An
         future = add_request_to_queue(content)
         response = await future
 
-        response_text = response.text
+        try:
+            response_text = response.text
+        except AttributeError:
+            logger.error(f"LLM Layer One: Invalid response for page {page['id']}. Response: {response}")
+            return {
+                "page_id": page['id'],
+                "error": "Invalid response from LLM Layer One"
+            }
+
         logger.info(f"LLM Layer One: Successfully processed page {page['id']}")
 
         # Parse the response JSON

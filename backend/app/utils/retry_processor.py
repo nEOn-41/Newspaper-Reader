@@ -48,7 +48,7 @@ async def retry_failed_responses(failed_responses: List[Dict[str, Any]], query: 
     retried_responses = []
 
     for response in failed_responses:
-        if 'page_id' not in response or 'pdf_data' not in response:
+        if 'page_id' not in response:
             logger.error(f"Invalid response structure: {response}")
             continue
 
@@ -64,12 +64,21 @@ async def retry_failed_responses(failed_responses: List[Dict[str, Any]], query: 
         max_retries = 3
         for attempt in range(max_retries):
             try:
+                logger.info(f"Retrying page {page['id']} (Attempt {attempt + 1}) with LLM Layer One")
                 retried_response = await process_page(page, pdf_data, query, client_name)
-                retried_responses.append(retried_response)
-                break  # Exit the retry loop on success
+                
+                if 'error' not in retried_response:
+                    logger.info(f"Successfully retried page {page['id']} with LLM Layer One")
+                    retried_responses.append(retried_response)
+                    break
+                else:
+                    logger.error(f"Error retrying page {page['id']} with LLM Layer One (Attempt {attempt + 1}): {retried_response['error']}")
             except Exception as e:
-                logger.error(f"Error retrying page {page['id']} (Attempt {attempt + 1}): {str(e)}")
-                if attempt < max_retries - 1:
-                    await asyncio.sleep(5)  # Wait before retrying
+                logger.error(f"Exception retrying page {page['id']} with LLM Layer One (Attempt {attempt + 1}): {str(e)}")
+            
+            if attempt < max_retries - 1:
+                await asyncio.sleep(5)  # Wait before retrying
+        else:
+            logger.error(f"Failed to retry page {page['id']} after {max_retries} attempts")
 
     return retried_responses
