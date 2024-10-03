@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 from collections import deque
 from time import time
 from ..config import RATE_LIMIT_INTERVAL_PRO, BATCH_SIZE_PRO
-from ..models.gemini_model_pro import model_pro
+from ..llms.gemini_model_pro import model_pro
 from aiolimiter import AsyncLimiter
 
 logger = logging.getLogger(__name__)

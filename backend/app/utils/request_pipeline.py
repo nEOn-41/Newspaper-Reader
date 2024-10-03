@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 from collections import deque
 from time import time
 from ..config import RATE_LIMIT_INTERVAL, BATCH_SIZE
-from ..models.gemini_model import model
+from ..llms.gemini_model import get_gemini_model
 from aiolimiter import AsyncLimiter
 
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ async def process_request(task: Dict[str, Any]) -> None:
     content = task['content']
     future = task['future']
     try:
-        response = await model.generate_content_async(content)
+        response = await get_gemini_model().generate_content_async(content)
         future.set_result(response)
     except Exception as e:
         future.set_exception(e)

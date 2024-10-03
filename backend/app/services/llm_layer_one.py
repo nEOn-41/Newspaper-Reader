@@ -58,7 +58,10 @@ async def analyze_page_with_llm_one(page: Dict[str, Any], pdf_data: Dict[str, An
         ]
 
         # Import the model here to avoid circular imports
-        from ..models.gemini_model import model
+        from ..llms.gemini_model import get_gemini_model
+
+        # Use the model
+        model = get_gemini_model()
 
         # Add the request to the queue and await the result
         future = add_request_to_queue(content)

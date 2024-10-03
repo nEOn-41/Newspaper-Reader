@@ -5,6 +5,10 @@ import logging
 from typing import Dict, Any
 from ..models.system_prompt import get_second_system_prompt
 from ..utils.request_pipeline_pro import add_request_to_queue_pro
+from ..llms.gemini_model_pro import get_gemini_model_pro
+
+# Use the model when needed
+model_pro = get_gemini_model_pro()
 
 logger = logging.getLogger(__name__)
 
